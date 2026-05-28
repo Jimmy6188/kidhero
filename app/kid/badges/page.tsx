@@ -45,6 +45,7 @@ export default function BadgesPage() {
             icon={badge.icon}
             description={badge.description}
             isUnlocked={unlockedNames.includes(badge.name)}
+            rarity={badge.rarity}
           />
         ))}
       </div>

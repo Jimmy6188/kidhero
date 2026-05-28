@@ -6,15 +6,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const kidId = searchParams.get("kid_id")
 
-    if (!kidId) {
-      return NextResponse.json({ error: "缺少 kid_id" }, { status: 400 })
-    }
-
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("wishes")
       .select("*")
-      .eq("kid_id", kidId)
+      .not("kid_id", "is", null)
       .order("created_at", { ascending: false })
+
+    if (kidId) {
+      query = query.eq("kid_id", kidId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

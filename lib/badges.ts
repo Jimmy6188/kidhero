@@ -1,12 +1,26 @@
-﻿export const BADGE_DEFINITIONS = [
-  { name: "初出茅庐", icon: "🌱", description: "完成第一次打卡", category: "general" as const, condition: { type: "first_checkin" } },
-  { name: "三日行者", icon: "🔥", description: "连续打卡 3 天", category: "general" as const, condition: { type: "streak", days: 3 } },
-  { name: "一周战士", icon: "⚔️", description: "连续打卡 7 天", category: "general" as const, condition: { type: "streak", days: 7 } },
-  { name: "百分达人", icon: "💯", description: "累计获得 100 积分", category: "general" as const, condition: { type: "total_points", points: 100 } },
-  { name: "森林守护者", icon: "🌲", description: "解锁绿野森林所有任务", category: "general" as const, condition: { type: "region", region: "forest" } },
-  { name: "算术小能手", icon: "🧮", description: "数学连续答对 10 题", category: "learning" as const, condition: { type: "subject_streak", subject: "math", count: 10 } },
-  { name: "语文小作家", icon: "✍️", description: "完成 20 道语文题", category: "learning" as const, condition: { type: "subject_total", subject: "chinese", count: 20 } },
-  { name: "英语小达人", icon: "🌍", description: "掌握 50 个英语单词", category: "learning" as const, condition: { type: "subject_total", subject: "english", count: 50 } },
-  { name: "挑战赛冠军", icon: "🏆", description: "完成周末挑战赛", category: "learning" as const, condition: { type: "challenge_complete" } },
-  { name: "错题终结者", icon: "📚", description: "纠错本清空一次", category: "learning" as const, condition: { type: "error_book_empty" } },
+export type Rarity = "common" | "rare" | "epic" | "legendary"
+
+export const BADGE_DEFINITIONS = [
+  // Common
+  { name: "出击小超人", icon: "🌟", description: "完成第一次打卡", category: "general" as const, rarity: "common" as Rarity, condition: { type: "first_checkin" } },
+  { name: "洗手小卫士", icon: "🧼", description: "连续 7 天完成洗手打卡", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_streak", task_name: "饭前便后洗手", days: 7 } },
+  { name: "整理达人", icon: "🧹", description: "累计整理书桌/床铺 30 次", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_total", count: 30 } },
+  { name: "早起勇士", icon: "⏰", description: "连续 7 天按时睡觉", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_streak", task_name: "按时睡觉", days: 7 } },
+  { name: "数学冒险家", icon: "🔢", description: "完成数学练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "math", count: 20 } },
+  { name: "英语小达人", icon: "🅰️", description: "完成英语练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "english", count: 20 } },
+  { name: "诗词小书童", icon: "📖", description: "完成语文练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "chinese", count: 20 } },
+  { name: "小吃货", icon: "🍽️", description: "连续 7 天饭前洗手打卡", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_streak", task_name: "饭前便后洗手", days: 7 } },
+  { name: "书包管家", icon: "🎒", description: "累计收拾书包 20 次", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_total", count: 20 } },
+  // Rare
+  { name: "坚持一周", icon: "🔥", description: "连续打卡 7 天", category: "general" as const, rarity: "rare" as Rarity, condition: { type: "streak", days: 7 } },
+  { name: "半月英雄", icon: "💪", description: "连续打卡 14 天", category: "general" as const, rarity: "rare" as Rarity, condition: { type: "streak", days: 14 } },
+  // Epic
+  { name: "月度冠军", icon: "👑", description: "连续打卡 30 天", category: "general" as const, rarity: "epic" as Rarity, condition: { type: "streak", days: 30 } },
+  { name: "学科全勤", icon: "🏆", description: "单月语数英全部完成", category: "learning" as const, rarity: "epic" as Rarity, condition: { type: "monthly_all_subjects" } },
+  { name: "生活全能王", icon: "🏠", description: "单月所有生活任务全勤", category: "general" as const, rarity: "epic" as Rarity, condition: { type: "monthly_all_tasks" } },
+  // Legendary
+  { name: "破万先锋", icon: "💰", description: "累计获得 10000 积分", category: "general" as const, rarity: "legendary" as Rarity, condition: { type: "total_points", points: 10000 } },
+  { name: "小超人之星", icon: "✨", description: "累计获得 30000 积分", category: "general" as const, rarity: "legendary" as Rarity, condition: { type: "total_points", points: 30000 } },
+  { name: "宇宙守护者", icon: "🌌", description: "累计获得 50000 积分", category: "general" as const, rarity: "legendary" as Rarity, condition: { type: "total_points", points: 50000 } },
+  { name: "百日传奇", icon: "💎", description: "连续打卡 100 天", category: "general" as const, rarity: "legendary" as Rarity, condition: { type: "streak", days: 100 } },
 ]

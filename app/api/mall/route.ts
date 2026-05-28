@@ -6,10 +6,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const kidId = searchParams.get("kid_id")
 
-    let query = supabaseAdmin.from("wishes").select("*").eq("status", "approved")
-    if (kidId) query = query.eq("kid_id", kidId)
-
-    const { data, error } = await query.order("created_at", { ascending: false })
+    // Get parent rewards (kid_id is null) + kid's own approved wishes
+    const { data, error } = await supabaseAdmin
+      .from("wishes")
+      .select("*")
+      .eq("status", "approved")
+      .or(`kid_id.is.null,kid_id.eq.${kidId || "null"}`)
+      .order("points_cost", { ascending: true })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

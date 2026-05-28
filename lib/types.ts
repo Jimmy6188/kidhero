@@ -119,7 +119,7 @@ export interface Badge {
   icon: string
   description: string
   category: "general" | "learning"
-  condition: Record<string, unknown>
+  condition: Record<string, unknown> & { rarity?: "common" | "rare" | "epic" | "legendary" }
 }
 
 export interface UserBadge {
