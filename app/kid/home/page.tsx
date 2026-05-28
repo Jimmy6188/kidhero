@@ -24,13 +24,10 @@ export default function KidHomePage() {
     loadData()
   }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
   const loadData = async () => {
     try {
       const kidId = getActiveKidId()
+      if (!kidId) return
 
       // Daily settlement: check yesterday's missed tasks
       try {
