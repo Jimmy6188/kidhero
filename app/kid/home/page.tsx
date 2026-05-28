@@ -1,18 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import StreakCounter from "@/components/kid/StreakCounter"
 import PointsDisplay from "@/components/kid/PointsDisplay"
-import TaskCard from "@/components/kid/TaskCard"
-import { Task } from "@/lib/types"
 import { getActiveKidId, getKidSession } from "@/lib/session"
-
-interface TaskWithStatus extends Task {
-  status: "todo" | "pending" | "approved" | "rejected"
-}
+import { getAdaptiveDifficulty } from "@/lib/difficulty"
 
 export default function KidHomePage() {
-  const [tasks, setTasks] = useState<TaskWithStatus[]>([])
   const [streak, setStreak] = useState({ current: 0, best: 0 })
   const [points, setPoints] = useState(0)
   const [penalty, setPenalty] = useState<{ missed: number; deducted: number; tasks: { name: string; icon: string }[] } | null>(null)
@@ -29,7 +24,7 @@ export default function KidHomePage() {
       const kidId = getActiveKidId()
       if (!kidId) return
 
-      // Daily settlement: check yesterday's missed tasks
+      // Daily settlement
       try {
         const settleRes = await fetch("/api/daily-settlement", {
           method: "POST",
@@ -44,19 +39,14 @@ export default function KidHomePage() {
         // noop
       }
 
-      const tasksRes = await fetch(`/api/tasks?user_id=${kidId}`)
-      const tasksData = await tasksRes.json()
-      const tasksWithStatus: TaskWithStatus[] = (tasksData.tasks || []).map((task: Task) => ({
-        ...task,
-        status: "todo" as const,
-      }))
-      setTasks(tasksWithStatus.slice(0, 3))
+      const [pointsRes, streakRes] = await Promise.all([
+        fetch(`/api/points?kid_id=${kidId}`),
+        fetch(`/api/streak?kid_id=${kidId}`),
+      ])
 
-      const pointsRes = await fetch(`/api/points?kid_id=${kidId}`)
       const pointsData = await pointsRes.json()
       setPoints(pointsData.total_points || 0)
 
-      const streakRes = await fetch(`/api/streak?kid_id=${kidId}`)
       const streakData = await streakRes.json()
       if (streakData.streak) {
         setStreak({
@@ -69,34 +59,14 @@ export default function KidHomePage() {
     }
   }
 
-  const handleCheckIn = async (taskId: string) => {
-    try {
-      const kidId = getActiveKidId()
-
-      const res = await fetch("/api/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task_id: taskId, kid_id: kidId }),
-      })
-
-      const data = await res.json()
-      if (data.success) {
-        setTasks((prev) =>
-          prev.map((task) => (task.id === taskId ? { ...task, status: "pending" } : task))
-        )
-      }
-    } catch {
-      // noop
-    }
-  }
-
   return (
     <div className="p-4 pb-24">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">你好，{kidName}</h1>
-        <p className="text-gray-500">今天的任务等着你挑战</p>
+      <header className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">你好，{kidName} 🦸</h1>
+        <p className="text-gray-500 text-sm">今天也要加油哦！</p>
       </header>
 
+      {/* Penalty notification */}
       {penalty && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
@@ -117,33 +87,39 @@ export default function KidHomePage() {
         </div>
       )}
 
+      {/* Stats */}
       <div className="grid grid-cols-1 gap-4 mb-6">
         <StreakCounter currentStreak={streak.current} bestStreak={streak.best} />
         <PointsDisplay totalPoints={points} />
       </div>
 
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-gray-700">今日任务</h2>
-          <a href="/kid/tasks" className="text-sm text-blue-500 font-medium">
-            查看全部
-          </a>
-        </div>
+      {/* Quick actions */}
+      <h2 className="text-lg font-bold text-gray-700 mb-3">快捷入口</h2>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <Link href="/kid/tasks" className="card flex flex-col items-center py-5 hover:shadow-md transition-shadow">
+          <span className="text-3xl mb-2">📋</span>
+          <span className="font-bold text-gray-700 text-sm">每日任务</span>
+          <span className="text-xs text-gray-400 mt-1">打卡赚积分</span>
+        </Link>
 
-        {tasks.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <div className="text-4xl mb-2">空</div>
-            <p>还没有任务</p>
-            <p className="text-sm mt-1">请家长先去配置任务</p>
-          </div>
-        ) : (
-          <div>
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onCheckIn={handleCheckIn} />
-            ))}
-          </div>
-        )}
-      </section>
+        <Link href="/kid/study" className="card flex flex-col items-center py-5 hover:shadow-md transition-shadow">
+          <span className="text-3xl mb-2">📚</span>
+          <span className="font-bold text-gray-700 text-sm">学习闯关</span>
+          <span className="text-xs text-gray-400 mt-1">每科 10 题</span>
+        </Link>
+
+        <Link href="/kid/map" className="card flex flex-col items-center py-5 hover:shadow-md transition-shadow">
+          <span className="text-3xl mb-2">🗺️</span>
+          <span className="font-bold text-gray-700 text-sm">冒险地图</span>
+          <span className="text-xs text-gray-400 mt-1">探索新世界</span>
+        </Link>
+
+        <Link href="/kid/badges" className="card flex flex-col items-center py-5 hover:shadow-md transition-shadow">
+          <span className="text-3xl mb-2">🏅</span>
+          <span className="font-bold text-gray-700 text-sm">勋章墙</span>
+          <span className="text-xs text-gray-400 mt-1">收集成就</span>
+        </Link>
+      </div>
     </div>
   )
 }
