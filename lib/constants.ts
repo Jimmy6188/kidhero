@@ -1,14 +1,16 @@
 ﻿import { MapRegion } from "./types"
 
 export const DEFAULT_TASKS = [
-  { name: "整理书桌", icon: "📚", category: "life" as const, points: 10 },
+  { name: "整理打扫书桌", icon: "📚", category: "life" as const, points: 10 },
   { name: "整理床铺", icon: "🛏️", category: "life" as const, points: 10 },
   { name: "穿拖鞋", icon: "🩴", category: "life" as const, points: 5 },
   { name: "饭前便后洗手", icon: "🧼", category: "life" as const, points: 5 },
   { name: "按时睡觉", icon: "😴", category: "life" as const, points: 15 },
-  { name: "自己收拾书包", icon: "🎒", category: "life" as const, points: 10 },
+  { name: "自己洗漱", icon: "🪥", category: "life" as const, points: 10 },
   { name: "帮忙做家务", icon: "🧹", category: "life" as const, points: 15 },
-  { name: "按时刷牙洗脸洗脚", icon: "🪥", category: "life" as const, points: 10 },
+  { name: "不顶嘴不发脾气", icon: "😌", category: "life" as const, points: 10 },
+  { name: "吃饭不挑食", icon: "🍚", category: "life" as const, points: 10 },
+  { name: "做事专注认真不墨迹", icon: "⏱️", category: "life" as const, points: 15 },
 ]
 
 export const MAP_REGIONS: MapRegion[] = [
@@ -36,4 +38,4 @@ export const STREAK_REWARDS: Record<number, number> = {
 
 export const MAX_RESCUE_PER_MONTH = 2
 export const RESCUE_WINDOW_HOURS = 48
-export const DAILY_QUESTIONS_COUNT = 10
+export const DAILY_QUESTIONS_COUNT = 30

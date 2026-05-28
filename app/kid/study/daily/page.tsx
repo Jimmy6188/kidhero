@@ -10,7 +10,7 @@ export default function DailyChallengePage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
-  const [monsterHP, setMonsterHP] = useState(50)
+  const [monsterHP, setMonsterHP] = useState(150)
   const [gems, setGems] = useState<string[]>([])
   const [isFinished, setIsFinished] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
@@ -27,7 +27,7 @@ export default function DailyChallengePage() {
   const loadQuestions = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/questions?kid_id=${getKidId()}&count=10`)
+      const res = await fetch(`/api/questions?kid_id=${getKidId()}&count=30`)
       const data = await res.json()
       setQuestions(data.questions || [])
     } catch {
@@ -174,7 +174,7 @@ export default function DailyChallengePage() {
       total={questions.length}
       onAnswer={handleAnswer}
       monsterHP={monsterHP}
-      monsterMaxHP={50}
+      monsterMaxHP={150}
       gems={gems}
     />
   )
