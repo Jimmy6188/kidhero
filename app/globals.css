@@ -1,0 +1,37 @@
+﻿@import "tailwindcss";
+
+@theme inline {
+  --color-primary-50: #eef7ff;
+  --color-primary-100: #d9edff;
+  --color-primary-200: #bce0ff;
+  --color-primary-300: #8eccff;
+  --color-primary-400: #59b0ff;
+  --color-primary-500: #338dff;
+  --color-primary-600: #1a6df5;
+  --color-primary-700: #1457e1;
+  --color-primary-800: #1747b6;
+  --color-primary-900: #193e8f;
+  --color-kid-green: #22c55e;
+  --color-kid-blue: #3b82f6;
+  --color-kid-orange: #f97316;
+  --color-kid-pink: #ec4899;
+  --color-kid-yellow: #eab308;
+  --color-kid-purple: #a855f7;
+  --font-rounded: "Nunito", system-ui, sans-serif;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
+
+body {
+  font-family: var(--font-rounded);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.btn-primary {
+  @apply bg-primary-500 text-white font-bold py-3 px-6 rounded-2xl active:scale-95 transition-transform shadow-lg cursor-pointer;
+}
+
+.card {
+  @apply bg-white rounded-3xl p-4 shadow-md;
+}
