@@ -15,18 +15,18 @@ export const DEFAULT_TASKS = [
 
 export const MAP_REGIONS: MapRegion[] = [
   { id: "forest", name: "绿野森林", icon: "🌲", requiredLevel: 1, requiredPoints: 0, theme: "新手村", color: "#22c55e" },
-  { id: "ocean", name: "海底世界", icon: "🌊", requiredLevel: 2, requiredPoints: 200, theme: "水下冒险", color: "#3b82f6" },
-  { id: "desert", name: "沙漠冒险", icon: "🏜️", requiredLevel: 3, requiredPoints: 500, theme: "耐心考验", color: "#f97316" },
-  { id: "space", name: "太空基地", icon: "🚀", requiredLevel: 4, requiredPoints: 1000, theme: "科幻探索", color: "#a855f7" },
-  { id: "castle", name: "王冠城堡", icon: "🏰", requiredLevel: 5, requiredPoints: 2000, theme: "终极挑战", color: "#eab308" },
+  { id: "ocean", name: "海底世界", icon: "🌊", requiredLevel: 2, requiredPoints: 1000, theme: "水下冒险", color: "#3b82f6" },
+  { id: "desert", name: "沙漠冒险", icon: "🏜️", requiredLevel: 3, requiredPoints: 5000, theme: "耐心考验", color: "#f97316" },
+  { id: "space", name: "太空基地", icon: "🚀", requiredLevel: 4, requiredPoints: 15000, theme: "科幻探索", color: "#a855f7" },
+  { id: "castle", name: "王冠城堡", icon: "🏰", requiredLevel: 5, requiredPoints: 30000, theme: "终极挑战", color: "#eab308" },
 ]
 
 export const LEVEL_THRESHOLDS = [
   { level: 1, name: "萌新小超人", points: 0 },
-  { level: 2, name: "勇敢探索者", points: 200 },
-  { level: 3, name: "智慧战士", points: 500 },
-  { level: 4, name: "星空勇士", points: 1000 },
-  { level: 5, name: "终极英雄", points: 2000 },
+  { level: 2, name: "勇敢探索者", points: 1000 },
+  { level: 3, name: "智慧战士", points: 5000 },
+  { level: 4, name: "星空勇士", points: 15000 },
+  { level: 5, name: "终极英雄", points: 30000 },
 ]
 
 export const STREAK_REWARDS: Record<number, number> = {
