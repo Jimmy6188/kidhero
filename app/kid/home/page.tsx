@@ -15,6 +15,7 @@ export default function KidHomePage() {
   const [tasks, setTasks] = useState<TaskWithStatus[]>([])
   const [streak, setStreak] = useState({ current: 0, best: 0 })
   const [points, setPoints] = useState(0)
+  const [penalty, setPenalty] = useState<{ missed: number; deducted: number; tasks: { name: string; icon: string }[] } | null>(null)
 
   useEffect(() => {
     loadData()
@@ -23,6 +24,21 @@ export default function KidHomePage() {
   const loadData = async () => {
     try {
       const kidId = getActiveKidId()
+
+      // Daily settlement: check yesterday's missed tasks
+      try {
+        const settleRes = await fetch("/api/daily-settlement", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kid_id: kidId }),
+        })
+        const settleData = await settleRes.json()
+        if (settleData.settled && settleData.missed > 0) {
+          setPenalty(settleData)
+        }
+      } catch {
+        // noop
+      }
 
       const tasksRes = await fetch(`/api/tasks?user_id=${kidId}`)
       const tasksData = await tasksRes.json()
@@ -76,6 +92,26 @@ export default function KidHomePage() {
         <h1 className="text-2xl font-bold text-gray-800">你好，小超人</h1>
         <p className="text-gray-500">今天的任务等着你挑战</p>
       </header>
+
+      {penalty && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">😢</span>
+            <h3 className="font-bold text-red-700">昨天有任务没完成哦</h3>
+          </div>
+          <p className="text-red-600 text-sm mb-2">
+            未完成 {penalty.missed} 项，扣除 {penalty.deducted} 积分
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {penalty.tasks.map((t, i) => (
+              <span key={i} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                {t.icon} {t.name}
+              </span>
+            ))}
+          </div>
+          <p className="text-red-500 text-xs mt-2">今天要全部完成哦！</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 mb-6">
         <StreakCounter currentStreak={streak.current} bestStreak={streak.best} />
