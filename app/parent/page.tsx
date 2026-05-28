@@ -47,7 +47,7 @@ export default function ParentPage() {
 
 function LoginForm() {
   const router = useRouter()
-  const [digits, setDigits] = useState<string[]>(["", "", "", ""])
+  const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""])
   const [error, setError] = useState("")
 
   const handleChange = (index: number, value: string) => {
@@ -57,13 +57,13 @@ function LoginForm() {
     newDigits[index] = value.slice(-1)
     setDigits(newDigits)
 
-    if (value && index < 3) {
+    if (value && index < 5) {
       const nextInput = document.getElementById(`pin-${index + 1}`)
       nextInput?.focus()
     }
 
     const pin = newDigits.join("")
-    if (pin.length === 4 && !newDigits.includes("")) {
+    if (pin.length === 6 && !newDigits.includes("")) {
       handleVerify(pin)
     }
   }
@@ -89,7 +89,7 @@ function LoginForm() {
         router.push("/parent/dashboard")
       } else {
         setError("PIN 码错误，请重试")
-        setDigits(["", "", "", ""])
+        setDigits(["", "", "", "", "", ""])
         document.getElementById("pin-0")?.focus()
       }
     } catch {
@@ -99,8 +99,8 @@ function LoginForm() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="text-gray-500 text-sm">请输入 4 位 PIN 码</p>
-      <div className="flex gap-3">
+      <p className="text-gray-500 text-sm">请输入 6 位 PIN 码</p>
+      <div className="flex gap-2">
         {digits.map((digit, index) => (
           <input
             key={index}
@@ -111,7 +111,7 @@ function LoginForm() {
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-14 h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-colors"
           />
         ))}
       </div>
@@ -137,8 +137,8 @@ function RegisterForm() {
       setError("请输入姓名")
       return
     }
-    if (pin.length < 4) {
-      setError("PIN 码至少 4 位数字")
+    if (pin.length !== 6) {
+      setError("PIN 码需要 6 位数字")
       return
     }
     if (pin !== confirmPin) {
@@ -201,7 +201,7 @@ function RegisterForm() {
       </div>
 
       <div>
-        <label className="text-sm text-gray-600 mb-1 block">设置 PIN 码（4-6 位数字）</label>
+        <label className="text-sm text-gray-600 mb-1 block">设置 6 位 PIN 码</label>
         <input
           type="tel"
           inputMode="numeric"

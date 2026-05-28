@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "请输入姓名" }, { status: 400 })
     }
 
-    if (!pin_code || pin_code.length < 4 || pin_code.length > 6) {
-      return NextResponse.json({ error: "PIN 码需要 4-6 位数字" }, { status: 400 })
+    if (!pin_code || pin_code.length !== 6) {
+      return NextResponse.json({ error: "PIN 码需要 6 位数字" }, { status: 400 })
     }
 
     if (!/^\d+$/.test(pin_code)) {

@@ -5,8 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const { pin_code } = await request.json()
 
-    if (!pin_code || pin_code.length < 4) {
-      return NextResponse.json({ error: "PIN 码无效" }, { status: 400 })
+    if (!pin_code || pin_code.length !== 6) {
+      return NextResponse.json({ error: "PIN 码需要 6 位数字" }, { status: 400 })
     }
 
     const { data: user, error } = await supabaseAdmin
