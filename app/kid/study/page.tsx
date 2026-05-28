@@ -11,7 +11,7 @@ export default function StudyPage() {
             <div className="text-4xl">⚔️</div>
             <div className="flex-1">
               <h3 className="font-bold text-gray-800">日常闯关</h3>
-              <p className="text-sm text-gray-500">每天 10 题，打怪升级</p>
+              <p className="text-sm text-gray-500">每科 10 题，共 30 题，打怪升级</p>
             </div>
             <div className="text-gray-400">→</div>
           </div>
