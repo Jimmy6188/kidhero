@@ -15,6 +15,8 @@ export default function KidEntryPage() {
   const router = useRouter()
   const [kids, setKids] = useState<KidInfo[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasParents, setHasParents] = useState(true)
+  const [hasKids, setHasKids] = useState(true)
 
   useEffect(() => {
     const existing = getKidSession()
@@ -30,6 +32,8 @@ export default function KidEntryPage() {
       const res = await fetch("/api/kids/all")
       const data = await res.json()
       setKids(data.kids || [])
+      setHasParents(data.hasParents ?? true)
+      setHasKids(data.hasKids ?? true)
     } catch {
       setKids([])
     }
@@ -65,16 +69,20 @@ export default function KidEntryPage() {
         >
           ← 返回
         </button>
-        <div className="text-6xl mb-4">😢</div>
-        <h1 className="text-2xl font-bold text-white mb-2">还没有宝贝信息</h1>
+        <div className="text-6xl mb-4">{hasParents ? "👶" : "👨‍👩‍👦"}</div>
+        <h1 className="text-2xl font-bold text-white mb-2">
+          {hasParents ? "还没有添加宝贝" : "还没有家长注册"}
+        </h1>
         <p className="text-white/70 text-center mb-6">
-          请先让家长注册并添加宝贝信息
+          {hasParents
+            ? "请家长登录后在后台添加宝贝信息"
+            : "请先让家长注册账号并添加宝贝信息"}
         </p>
         <button
           onClick={() => router.push("/parent")}
           className="px-8 py-3 bg-white text-blue-500 font-bold rounded-2xl shadow-lg cursor-pointer"
         >
-          去家长端
+          {hasParents ? "去家长登录" : "去家长注册"}
         </button>
       </div>
     )
