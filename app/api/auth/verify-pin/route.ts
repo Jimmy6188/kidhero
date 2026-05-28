@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-server"
 
 export async function POST(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
     const { data: user, error } = await supabaseAdmin
       .from("users")
-      .select("id, name, role, family_id")
+      .select("id, name, role, family_id, relationship")
       .eq("pin_code", pin_code)
       .eq("role", "parent")
       .single()
@@ -20,14 +20,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "PIN 码错误" }, { status: 401 })
     }
 
-    const { data: kid } = await supabaseAdmin
+    // Get all kids for this parent
+    const { data: kids } = await supabaseAdmin
       .from("users")
-      .select("id")
+      .select("id, name, avatar")
       .eq("role", "kid")
       .eq("parent_id", user.id)
       .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle()
 
     return NextResponse.json({
       success: true,
@@ -36,7 +35,9 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         family_id: user.family_id,
-        kid_id: kid?.id || undefined,
+        relationship: user.relationship,
+        kid_id: kids?.[0]?.id || undefined,
+        kids: kids || [],
       },
     })
   } catch {

@@ -5,7 +5,7 @@ import StreakCounter from "@/components/kid/StreakCounter"
 import PointsDisplay from "@/components/kid/PointsDisplay"
 import TaskCard from "@/components/kid/TaskCard"
 import { Task } from "@/lib/types"
-import { getActiveKidId } from "@/lib/session"
+import { getActiveKidId, getKidSession } from "@/lib/session"
 
 interface TaskWithStatus extends Task {
   status: "todo" | "pending" | "approved" | "rejected"
@@ -16,6 +16,13 @@ export default function KidHomePage() {
   const [streak, setStreak] = useState({ current: 0, best: 0 })
   const [points, setPoints] = useState(0)
   const [penalty, setPenalty] = useState<{ missed: number; deducted: number; tasks: { name: string; icon: string }[] } | null>(null)
+  const [kidName, setKidName] = useState("小超人")
+
+  useEffect(() => {
+    const session = getKidSession()
+    if (session?.name) setKidName(session.name)
+    loadData()
+  }, [])
 
   useEffect(() => {
     loadData()
@@ -89,7 +96,7 @@ export default function KidHomePage() {
   return (
     <div className="p-4 pb-24">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">你好，小超人</h1>
+        <h1 className="text-2xl font-bold text-gray-800">你好，{kidName}</h1>
         <p className="text-gray-500">今天的任务等着你挑战</p>
       </header>
 

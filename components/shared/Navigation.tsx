@@ -13,10 +13,10 @@ const kidNavItems = [
 
 const parentNavItems = [
   { href: "/parent/dashboard", icon: "📊", label: "概览" },
+  { href: "/parent/kids", icon: "👶", label: "宝贝" },
   { href: "/parent/tasks", icon: "📋", label: "任务" },
   { href: "/parent/review", icon: "✅", label: "审核" },
   { href: "/parent/rewards", icon: "🎁", label: "奖励" },
-  { href: "/parent/study-report", icon: "📈", label: "学习" },
 ]
 
 export default function Navigation({ role }: { role: "kid" | "parent" }) {

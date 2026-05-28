@@ -5,6 +5,14 @@ interface KidSession {
   name: string
   role: "kid"
   parent_id?: string
+  avatar?: string
+  grade?: number
+}
+
+interface KidInfo {
+  id: string
+  name: string
+  avatar: string
 }
 
 interface ParentSession {
@@ -12,6 +20,7 @@ interface ParentSession {
   name: string
   role: "parent"
   kid_id?: string
+  kids?: KidInfo[]
 }
 
 export function getKidSession(): KidSession | null {
@@ -46,6 +55,23 @@ export function setParentSession(session: ParentSession) {
   localStorage.setItem("parent_user", JSON.stringify(session))
 }
 
+export function switchKid(kidId: string) {
+  const parent = getParentSession()
+  if (!parent) return
+
+  const kid = parent.kids?.find((k) => k.id === kidId)
+  if (!kid) return
+
+  setParentSession({ ...parent, kid_id: kidId })
+  setKidSession({
+    id: kid.id,
+    name: kid.name,
+    role: "kid",
+    parent_id: parent.id,
+    avatar: kid.avatar,
+  })
+}
+
 export function getActiveKidId(): string {
   const parent = getParentSession()
   if (parent?.kid_id) return parent.kid_id
@@ -54,4 +80,9 @@ export function getActiveKidId(): string {
   if (kid?.id) return kid.id
 
   return ""
+}
+
+export function clearSession() {
+  localStorage.removeItem("kid_user")
+  localStorage.removeItem("parent_user")
 }

@@ -54,6 +54,9 @@ export interface User {
   avatar: string | null
   birth_year: number | null
   grade: number | null
+  height?: number | null
+  weight?: number | null
+  relationship?: string | null
   created_at: string
 }
 
