@@ -10,10 +10,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "缺少 user_id" }, { status: 400 })
     }
 
+    // If the user is a kid, look up their parent's tasks
+    let ownerId = userId
+    const { data: user } = await supabaseAdmin
+      .from("users")
+      .select("role, parent_id")
+      .eq("id", userId)
+      .single()
+
+    if (user?.role === "kid" && user.parent_id) {
+      ownerId = user.parent_id
+    }
+
     const { data, error } = await supabaseAdmin
       .from("tasks")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", ownerId)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
 
