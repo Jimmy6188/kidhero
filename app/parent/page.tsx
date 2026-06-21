@@ -12,33 +12,38 @@ export default function ParentPage() {
   const [mode, setMode] = useState<"login" | "register">("login")
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
-      <div className="absolute top-6 left-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 overflow-auto">
+      <div className="mb-6">
         <BackButton href="/" />
       </div>
 
-      <div className="text-5xl mb-4">👨‍👩‍👦</div>
+      <div className="flex flex-col items-center">
+        <div className="text-5xl mb-4">👨‍👩‍👦</div>
 
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setMode("login")}
-          className={`px-6 py-2 rounded-full font-bold text-sm transition-colors cursor-pointer ${
-            mode === "login" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
-          }`}
-        >
-          登录
-        </button>
-        <button
-          onClick={() => setMode("register")}
-          className={`px-6 py-2 rounded-full font-bold text-sm transition-colors cursor-pointer ${
-            mode === "register" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
-          }`}
-        >
-          注册
-        </button>
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setMode("login")}
+            className={`px-6 py-2 rounded-full font-bold text-sm transition-colors cursor-pointer ${
+              mode === "login" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
+            }`}
+          >
+            登录
+          </button>
+          <button
+            onClick={() => setMode("register")}
+            className={`px-6 py-2 rounded-full font-bold text-sm transition-colors cursor-pointer ${
+              mode === "register" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
+            }`}
+          >
+            注册
+          </button>
+        </div>
+
+        {mode === "login" ? <LoginForm /> : <RegisterForm />}
+
+        {/* 底部安全距离 */}
+        <div className="h-8"></div>
       </div>
-
-      {mode === "login" ? <LoginForm /> : <RegisterForm />}
     </div>
   )
 }
