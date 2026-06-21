@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getParentSession, setParentSession, setKidSession } from "@/lib/session"
+import BackButton from "@/components/shared/BackButton"
 
 const AVATARS = ["🦸‍♂️", "🧚‍♀️", "🦊", "🐱", "🐰", "🌟", "🐻", "🦋"]
 
@@ -89,12 +90,7 @@ export default function CreateKidPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-4">
-      <button
-        onClick={() => router.back()}
-        className="text-gray-400 mb-4 cursor-pointer"
-      >
-        ← 返回
-      </button>
+      <BackButton />
 
       <h1 className="text-2xl font-bold text-gray-800 mb-6">添加宝贝</h1>
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { getActiveKidId } from "@/lib/session"
+import BackButton from "@/components/shared/BackButton"
+import { ArrowRight } from "@phosphor-icons/react"
 
 interface ErrorEntry {
   id: string
@@ -75,12 +77,7 @@ export default function ErrorBookPage() {
 
     return (
       <div className="p-4">
-        <button
-          onClick={() => { setReviewing(null); setShowResult(false) }}
-          className="text-gray-400 mb-4 cursor-pointer"
-        >
-          ← 返回纠错本
-        </button>
+        <BackButton label="返回纠错本" onClick={() => { setReviewing(null); setShowResult(false) }} />
 
         <div className="mb-3">
           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
@@ -164,9 +161,9 @@ export default function ErrorBookPage() {
                   <p className="text-xs text-red-400">错了 {entry.wrong_count} 次</p>
                   <button
                     onClick={() => setReviewing(entry)}
-                    className="text-sm text-blue-500 font-medium mt-1 cursor-pointer"
+                    className="flex items-center gap-1 text-sm text-blue-500 font-medium mt-1 cursor-pointer"
                   >
-                    重新做 →
+                    重新做 <ArrowRight size={14} />
                   </button>
                 </div>
               </div>

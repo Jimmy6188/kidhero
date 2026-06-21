@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { getParentSession } from "@/lib/session"
 import Link from "next/link"
+import { PencilSimple, Trash, Check, X } from "@phosphor-icons/react"
 
 interface WishItem {
   id: string
@@ -31,6 +32,11 @@ export default function ParentRewardsPage() {
   const [newCategory, setNewCategory] = useState("小奖")
   const [formError, setFormError] = useState("")
 
+  // Edit reward state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editPoints, setEditPoints] = useState("")
+
   const parentId = getParentSession()?.id
 
   useEffect(() => {
@@ -39,16 +45,23 @@ export default function ParentRewardsPage() {
 
   const loadData = async () => {
     setLoading(true)
-    const [rewardsRes, wishesRes] = await Promise.all([
-      fetch(`/api/rewards?parent_id=${parentId}`),
-      fetch(`/api/wishlist`),
-    ])
-    const rewardsData = await rewardsRes.json()
-    const wishesData = await wishesRes.json()
+    try {
+      const [rewardsRes, wishesRes] = await Promise.all([
+        parentId ? fetch(`/api/rewards?parent_id=${parentId}`) : Promise.resolve({ ok: true, json: () => ({ rewards: [] }) }),
+        fetch(`/api/wishlist`),
+      ])
+      const [rewardsData, wishesData] = await Promise.all([
+        rewardsRes.json(),
+        wishesRes.json(),
+      ])
 
-    setRewards(rewardsData.rewards || [])
-    setPending((wishesData.wishes || []).filter((w: WishItem) => w.status === "pending"))
-    setLoading(false)
+      setRewards(rewardsData.rewards || [])
+      setPending((wishesData.wishes || []).filter((w: WishItem) => w.status === "pending"))
+    } catch (error) {
+      console.error("Failed to load rewards data:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleAddReward = async (e: React.FormEvent) => {
@@ -88,29 +101,70 @@ export default function ParentRewardsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("确定删除这个奖品吗？")) return
-    await fetch("/api/rewards", {
+    const res = await fetch("/api/rewards", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "删除失败")
+      return
+    }
+    loadData()
+  }
+
+  const startEdit = (reward: WishItem) => {
+    setEditingId(reward.id)
+    setEditTitle(reward.title)
+    setEditPoints(String(reward.points_cost))
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditTitle("")
+    setEditPoints("")
+  }
+
+  const handleUpdate = async (id: string) => {
+    if (!editTitle.trim()) {
+      alert("请输入奖品名称")
+      return
+    }
+    if (!editPoints || Number(editPoints) <= 0) {
+      alert("请输入正确的积分")
+      return
+    }
+
+    const res = await fetch("/api/rewards", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id,
+        title: editTitle.trim(),
+        points_cost: Number(editPoints),
+      }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "更新失败")
+      return
+    }
+    cancelEdit()
     loadData()
   }
 
   const handleApprove = async (id: string, pointsCost: number) => {
-    await fetch("/api/wishlist", {
+    const res = await fetch("/api/wishlist", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status: "approved", points_cost: pointsCost }),
     })
-    loadData()
-  }
-
-  const handleFulfill = async (id: string) => {
-    await fetch("/api/wishlist", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "fulfilled" }),
-    })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || "审批失败")
+      return
+    }
     loadData()
   }
 
@@ -212,20 +266,67 @@ export default function ParentRewardsPage() {
               </div>
             ) : (
               rewards.map((r) => (
-                <div
-                  key={r.id}
-                  className="card flex items-center justify-between"
-                >
-                  <div>
-                    <h3 className="font-bold text-gray-800">{r.title}</h3>
-                    <p className="text-sm text-orange-500 font-medium">{r.points_cost} 积分</p>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="text-red-400 hover:text-red-600 text-sm cursor-pointer"
-                  >
-                    删除
-                  </button>
+                <div key={r.id} className="card">
+                  {editingId === r.id ? (
+                    // Edit mode
+                    <div className="space-y-3">
+                      <input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        placeholder="奖品名称"
+                        className="w-full p-3 bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={editPoints}
+                          onChange={(e) => setEditPoints(e.target.value.replace(/\D/g, ""))}
+                          type="number"
+                          min={1}
+                          placeholder="积分"
+                          className="flex-1 p-3 bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                        />
+                        <span className="text-sm text-gray-500">积分</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdate(r.id)}
+                          className="flex-1 flex items-center justify-center gap-1 py-2 bg-green-500 text-white rounded-xl cursor-pointer"
+                        >
+                          <Check size={16} />
+                          <span>保存</span>
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="flex-1 flex items-center justify-center gap-1 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer"
+                        >
+                          <X size={16} />
+                          <span>取消</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // View mode
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-gray-800">{r.title}</h3>
+                        <p className="text-sm text-orange-500 font-medium">{r.points_cost} 积分</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg cursor-pointer"
+                        >
+                          <PencilSimple size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(r.id)}
+                          className="p-2 text-red-400 hover:bg-red-50 rounded-lg cursor-pointer"
+                        >
+                          <Trash size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             )}

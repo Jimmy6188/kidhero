@@ -1,6 +1,9 @@
 ﻿"use client"
 
 import { MapRegion } from "@/lib/types"
+import { useRouter } from "next/navigation"
+import { Sword } from "@phosphor-icons/react"
+import { REGION_BOSSES } from "@/lib/constants"
 
 interface MapNodeProps {
   region: MapRegion
@@ -8,11 +11,16 @@ interface MapNodeProps {
   isCurrent: boolean
   index: number
   total: number
+  totalPoints?: number
 }
 
-export default function MapNode({ region, isUnlocked, isCurrent, index, total }: MapNodeProps) {
-  const isFirst = index === 0
+export default function MapNode({ region, isUnlocked, isCurrent, index, total, totalPoints = 0 }: MapNodeProps) {
+  const router = useRouter()
   const isLast = index === total - 1
+
+  // 查找该区域的 Boss
+  const boss = REGION_BOSSES.find(b => b.regionId === region.id)
+  const canChallengeBoss = boss && totalPoints >= boss.challengePoints
 
   return (
     <div className="relative">
@@ -71,12 +79,25 @@ export default function MapNode({ region, isUnlocked, isCurrent, index, total }:
           </div>
         )}
 
-        {/* 已解锁进度 */}
+        {/* 已解锁 + Boss 挑战入口 */}
         {isUnlocked && (
           <div className="mt-3 text-center">
-            <p className="text-xs" style={{ color: region.color }}>
+            <p className="text-xs mb-2" style={{ color: region.color }}>
               ✨ 已解锁
             </p>
+            {boss && (
+              <button
+                onClick={() => router.push(`/kid/map/boss?region=${region.id}`)}
+                className={`w-full py-2 px-4 rounded-xl text-sm font-bold cursor-pointer flex items-center justify-center gap-2 ${
+                  canChallengeBoss
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <Sword size={16} />
+                {canChallengeBoss ? `挑战 ${boss.name}` : `${boss.challengePoints} 积分解锁`}
+              </button>
+            )}
           </div>
         )}
       </div>

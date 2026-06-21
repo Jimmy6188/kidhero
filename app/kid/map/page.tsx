@@ -91,6 +91,7 @@ export default function MapPage() {
             isCurrent={current.id === region.id}
             index={index}
             total={MAP_REGIONS.length}
+            totalPoints={totalPoints}
           />
         ))}
       </div>

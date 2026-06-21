@@ -7,7 +7,7 @@ const kidNavItems = [
   { href: "/kid", icon: "🏠", label: "首页" },
   { href: "/kid/tasks", icon: "📋", label: "任务" },
   { href: "/kid/study", icon: "📚", label: "学习" },
-  { href: "/kid/wishlist", icon: "⭐", label: "心愿" },
+  { href: "/kid/wishlist", icon: "⭐", label: "心愿" }, // TODO: Ensure app/kid/wishlist/page.tsx exists
   { href: "/kid/mall", icon: "🛒", label: "商城" },
 ]
 

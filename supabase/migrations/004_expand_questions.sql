@@ -1,5 +1,7 @@
--- Clear old questions and reseed with expanded grade 3 question bank
-DELETE FROM questions;
+-- Clear old grade 3 questions and reseed with expanded question bank
+BEGIN;
+
+DELETE FROM questions WHERE grade = 3;
 
 -- ============================================================
 -- MATH (35 questions, difficulty 1-5)
@@ -155,3 +157,5 @@ INSERT INTO questions (subject, grade, difficulty, type, content, answer, explan
 ('english', 3, 5, 'fill', '{"stem":"She is the (填单词) girl in our class. (beautiful 的最高级)"}', '{"correct":"most beautiful"}', 'beautiful 是多音节词，最高级用 most beautiful', '最高级'),
 ('english', 3, 5, 'choice', '{"stem":"Which sentence is correct?","options":["He told me to open the door.","He told me open the door.","He told me opening the door.","He told me opens the door."]}', '{"correct":0}', 'tell sb to do sth 告诉某人做某事', '句型结构'),
 ('english', 3, 5, 'choice', '{"stem":"I have lived here ___ 2020.","options":["since","for","in","at"]}', '{"correct":0}', 'since + 时间点，for + 时间段。2020 是时间点用 since', '介词用法');
+
+COMMIT;

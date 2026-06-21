@@ -55,12 +55,18 @@ export function setParentSession(session: ParentSession) {
   localStorage.setItem("parent_user", JSON.stringify(session))
 }
 
-export function switchKid(kidId: string) {
+export function switchKid(kidId: string): boolean {
   const parent = getParentSession()
-  if (!parent) return
+  if (!parent) {
+    console.warn("switchKid: No parent session found")
+    return false
+  }
 
   const kid = parent.kids?.find((k) => k.id === kidId)
-  if (!kid) return
+  if (!kid) {
+    console.warn(`switchKid: Kid with id ${kidId} not found`)
+    return false
+  }
 
   setParentSession({ ...parent, kid_id: kidId })
   setKidSession({
@@ -70,6 +76,7 @@ export function switchKid(kidId: string) {
     parent_id: parent.id,
     avatar: kid.avatar,
   })
+  return true
 }
 
 export function getActiveKidId(): string {

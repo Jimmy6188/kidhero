@@ -13,8 +13,9 @@ export async function GET(request: NextRequest) {
       .is("kid_id", null)
       .eq("status", "approved")
 
+    // 如果有 parentId，优先查询该家长创建的奖品，否则返回所有公共奖品
     if (parentId) {
-      query = query.eq("description", `parent:${parentId}`)
+      query = query.or(`description.eq.parent:${parentId},description.is.null`)
     }
 
     const { data, error } = await query.order("points_cost", { ascending: true })

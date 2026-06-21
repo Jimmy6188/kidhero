@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getKidSession, setKidSession } from "@/lib/session"
+import BackButton from "@/components/shared/BackButton"
+import { CaretRight } from "@phosphor-icons/react"
 
 interface KidInfo {
   id: string
@@ -15,6 +17,7 @@ export default function KidEntryPage() {
   const router = useRouter()
   const [kids, setKids] = useState<KidInfo[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [hasParents, setHasParents] = useState(true)
   const [hasKids, setHasKids] = useState(true)
 
@@ -24,21 +27,33 @@ export default function KidEntryPage() {
       router.replace("/kid/home")
       return
     }
-    loadKids()
-  }, [])
 
-  const loadKids = async () => {
-    try {
-      const res = await fetch("/api/kids/all")
-      const data = await res.json()
-      setKids(data.kids || [])
-      setHasParents(data.hasParents ?? true)
-      setHasKids(data.hasKids ?? true)
-    } catch {
-      setKids([])
+    let isMounted = true
+    const controller = new AbortController()
+
+    const loadKids = async () => {
+      try {
+        const res = await fetch("/api/kids/all", { signal: controller.signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+        if (isMounted) {
+          setKids(data.kids || [])
+          setHasParents(data.hasParents ?? true)
+          setHasKids(data.hasKids ?? true)
+        }
+      } catch (err) {
+        if (isMounted && !controller.signal.aborted) {
+          setKids([])
+          setError(true)
+        }
+      } finally {
+        if (isMounted) setLoading(false)
+      }
     }
-    setLoading(false)
-  }
+
+    loadKids()
+    return () => { isMounted = false; controller.abort() }
+  }, [])
 
   const selectKid = (kid: KidInfo) => {
     setKidSession({
@@ -63,26 +78,25 @@ export default function KidEntryPage() {
   if (kids.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-400 to-green-400 p-6">
-        <button
-          onClick={() => router.push("/")}
-          className="absolute top-6 left-6 text-white/60 cursor-pointer"
-        >
-          ← 返回
-        </button>
-        <div className="text-6xl mb-4">{hasParents ? "👶" : "👨‍👩‍👦"}</div>
+        <div className="absolute top-6 left-6">
+          <BackButton variant="white" href="/" />
+        </div>
+        <div className="text-6xl mb-4">{error ? "😵" : hasParents ? "👶" : "👨‍👩‍👦"}</div>
         <h1 className="text-2xl font-bold text-white mb-2">
-          {hasParents ? "还没有添加宝贝" : "还没有家长注册"}
+          {error ? "加载失败" : hasParents ? "还没有添加宝贝" : "还没有家长注册"}
         </h1>
         <p className="text-white/70 text-center mb-6">
-          {hasParents
-            ? "请家长登录后在后台添加宝贝信息"
-            : "请先让家长注册账号并添加宝贝信息"}
+          {error
+            ? "网络或服务器出现问题，请稍后再试"
+            : hasParents
+              ? "请家长登录后在后台添加宝贝信息"
+              : "请先让家长注册账号并添加宝贝信息"}
         </p>
         <button
-          onClick={() => router.push("/parent")}
+          onClick={() => error ? window.location.reload() : router.push("/parent")}
           className="px-8 py-3 bg-white text-blue-500 font-bold rounded-2xl shadow-lg cursor-pointer"
         >
-          {hasParents ? "去家长登录" : "去家长注册"}
+          {error ? "重试" : hasParents ? "去家长登录" : "去家长注册"}
         </button>
       </div>
     )
@@ -90,12 +104,9 @@ export default function KidEntryPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-400 to-green-400 p-6">
-      <button
-        onClick={() => router.push("/")}
-        className="absolute top-6 left-6 text-white/60 cursor-pointer"
-      >
-        ← 返回
-      </button>
+      <div className="absolute top-6 left-6">
+        <BackButton variant="white" href="/" />
+      </div>
 
       <h1 className="text-3xl font-bold text-white mb-2">🦸 小超人成长记</h1>
       <p className="text-white/70 mb-8">选择你是谁？</p>
@@ -116,7 +127,7 @@ export default function KidEntryPage() {
                 </p>
               )}
             </div>
-            <span className="text-gray-400">→</span>
+            <CaretRight size={16} className="text-gray-400" />
           </button>
         ))}
       </div>

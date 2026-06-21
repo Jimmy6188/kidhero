@@ -1,4 +1,4 @@
-﻿-- 数学题（三年级）
+-- 数学题（三年级）
 INSERT INTO questions (subject, grade, difficulty, type, content, answer, explanation, knowledge_point) VALUES
 ('math', 3, 1, 'choice', '{"stem":"12 x 3 = ?","options":["36","33","39","35"]}', '{"correct":0}', '12 x 3 = 36，拆分：10x3=30 + 2x3=6', '乘法口诀'),
 ('math', 3, 1, 'choice', '{"stem":"48 ÷ 6 = ?","options":["7","8","9","6"]}', '{"correct":1}', '48 ÷ 6 = 8，六八四十八', '除法运算'),

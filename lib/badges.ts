@@ -9,8 +9,8 @@ export const BADGE_DEFINITIONS = [
   { name: "数学冒险家", icon: "🔢", description: "完成数学练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "math", count: 20 } },
   { name: "英语小达人", icon: "🅰️", description: "完成英语练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "english", count: 20 } },
   { name: "诗词小书童", icon: "📖", description: "完成语文练习 20 次", category: "learning" as const, rarity: "common" as Rarity, condition: { type: "subject_total", subject: "chinese", count: 20 } },
-  { name: "小吃货", icon: "🍽️", description: "连续 7 天饭前洗手打卡", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_streak", task_name: "饭前便后洗手", days: 7 } },
-  { name: "书包管家", icon: "🎒", description: "累计收拾书包 20 次", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_total", count: 20 } },
+  { name: "小吃货", icon: "🍽️", description: "连续 7 天好好吃饭不挑食", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_streak", task_name: "好好吃饭", days: 7 } },
+  { name: "书包管家", icon: "🎒", description: "累计收拾书包 20 次", category: "general" as const, rarity: "common" as Rarity, condition: { type: "task_total", task_name: "收拾书包", count: 20 } },
   // Rare
   { name: "坚持一周", icon: "🔥", description: "连续打卡 7 天", category: "general" as const, rarity: "rare" as Rarity, condition: { type: "streak", days: 7 } },
   { name: "半月英雄", icon: "💪", description: "连续打卡 14 天", category: "general" as const, rarity: "rare" as Rarity, condition: { type: "streak", days: 14 } },

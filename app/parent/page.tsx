@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { setParentSession } from "@/lib/session"
+import BackButton from "@/components/shared/BackButton"
 
 const RELATIONSHIPS = ["爸爸", "妈妈", "爷爷", "奶奶", "外公", "外婆", "其他"]
 
@@ -11,13 +12,10 @@ export default function ParentPage() {
   const [mode, setMode] = useState<"login" | "register">("login")
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 p-6">
-      <button
-        onClick={() => router.push("/")}
-        className="absolute top-6 left-6 text-gray-400 cursor-pointer"
-      >
-        ← 返回
-      </button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
+      <div className="absolute top-6 left-6">
+        <BackButton href="/" />
+      </div>
 
       <div className="text-5xl mb-4">👨‍👩‍👦</div>
 
@@ -111,7 +109,7 @@ function LoginForm() {
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-11 h-14 text-center text-xl font-bold bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all caret-blue-500"
           />
         ))}
       </div>
@@ -176,7 +174,7 @@ function RegisterForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="请输入姓名"
-          className="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="w-full p-3 bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all caret-blue-500"
         />
       </div>
 
@@ -209,7 +207,7 @@ function RegisterForm() {
           value={pin}
           onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
           placeholder="请输入 PIN 码"
-          className="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="w-full p-3 bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all caret-blue-500"
         />
       </div>
 
@@ -222,7 +220,7 @@ function RegisterForm() {
           value={confirmPin}
           onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
           placeholder="请再次输入 PIN 码"
-          className="w-full p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="w-full p-3 bg-gray-50 border-2 border-gray-300 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all caret-blue-500"
         />
       </div>
 

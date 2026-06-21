@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getParentSession, setParentSession, switchKid } from "@/lib/session"
+import BackButton from "@/components/shared/BackButton"
 
 interface KidData {
   id: string
@@ -63,12 +64,7 @@ export default function KidsManagementPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-4 pb-24">
-      <button
-        onClick={() => router.push("/parent/dashboard")}
-        className="text-gray-400 mb-4 cursor-pointer"
-      >
-        ← 返回
-      </button>
+      <BackButton href="/parent/dashboard" />
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">宝贝管理</h1>

@@ -119,7 +119,8 @@ export interface Badge {
   icon: string
   description: string
   category: "general" | "learning"
-  condition: Record<string, unknown> & { rarity?: "common" | "rare" | "epic" | "legendary" }
+  rarity?: "common" | "rare" | "epic" | "legendary"
+  condition: Record<string, unknown>
 }
 
 export interface UserBadge {
@@ -138,3 +139,40 @@ export interface MapRegion {
   theme: string
   color: string
 }
+
+export interface RegionBoss {
+  id: string
+  regionId: string
+  name: string
+  icon: string
+  description: string
+  challengePoints: number  // 挑战所需积分
+  challengeSubject: Subject
+  challengeDifficulty: number
+  challengeCount: number   // 题目数量
+  rewardPoints: number
+  rewardBadgeId: string
+}
+
+export interface RegionBadge {
+  id: string
+  regionId: string
+  name: string
+  icon: string
+  description: string
+  rarity: Rarity
+  condition: Record<string, unknown>
+}
+
+export interface BossChallenge {
+  id: string
+  kid_id: string
+  boss_id: string
+  status: "in_progress" | "victory" | "defeat"
+  score: number
+  total: number
+  started_at: string
+  completed_at: string | null
+}
+
+export type Rarity = "common" | "rare" | "epic" | "legendary"

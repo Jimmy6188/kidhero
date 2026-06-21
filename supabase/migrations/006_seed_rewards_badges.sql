@@ -14,7 +14,8 @@ INSERT INTO wishes (title, description, points_cost, status, kid_id) VALUES
 ('今晚不用收拾桌子/洗碗', NULL, 200, 'approved', NULL),
 ('随手小盲盒（文具/小玩具）', NULL, 200, 'approved', NULL),
 ('选一款健康的下午茶点心', NULL, 150, 'approved', NULL),
-('给家人表演一个节目', NULL, 120, 'approved', NULL);
+('给家人表演一个节目', NULL, 120, 'approved', NULL)
+ON CONFLICT (title, kid_id) DO NOTHING;
 
 -- Medium rewards (400-800 points)
 INSERT INTO wishes (title, description, points_cost, status, kid_id) VALUES
@@ -28,7 +29,8 @@ INSERT INTO wishes (title, description, points_cost, status, kid_id) VALUES
 ('周末睡懒觉特权', NULL, 400, 'approved', NULL),
 ('选一款桌游全家一起玩', NULL, 800, 'approved', NULL),
 ('周末不做任何家务', NULL, 500, 'approved', NULL),
-('让爸爸/妈妈陪玩一局电子游戏', NULL, 500, 'approved', NULL);
+('让爸爸/妈妈陪玩一局电子游戏', NULL, 500, 'approved', NULL)
+ON CONFLICT (title, kid_id) DO NOTHING;
 
 -- Large rewards (1200-2000 points)
 INSERT INTO wishes (title, description, points_cost, status, kid_id) VALUES
@@ -43,12 +45,10 @@ INSERT INTO wishes (title, description, points_cost, status, kid_id) VALUES
 ('新书包/文具套装', NULL, 1400, 'approved', NULL),
 ('周末住爷爷奶奶/外公外婆家', NULL, 1200, 'approved', NULL),
 ('一套拼装模型', NULL, 1600, 'approved', NULL),
-('新运动鞋', NULL, 1800, 'approved', NULL);
+('新运动鞋', NULL, 1800, 'approved', NULL)
+ON CONFLICT (title, kid_id) DO NOTHING;
 
--- Update badges with new system and rarities
-DELETE FROM badges;
-DELETE FROM user_badges;
-
+-- Upsert badges with new system and rarities (preserves user-earned badges)
 INSERT INTO badges (name, icon, description, category, condition) VALUES
 ('出击小超人', '🌟', '完成第一次打卡', 'general', '{"type":"first_checkin","rarity":"common"}'),
 ('洗手小卫士', '🧼', '连续 7 天完成洗手打卡', 'general', '{"type":"task_streak","task_name":"饭前便后洗手","days":7,"rarity":"common"}'),
@@ -57,8 +57,8 @@ INSERT INTO badges (name, icon, description, category, condition) VALUES
 ('数学冒险家', '🔢', '完成数学练习 20 次', 'learning', '{"type":"subject_total","subject":"math","count":20,"rarity":"common"}'),
 ('英语小达人', '🅰️', '完成英语练习 20 次', 'learning', '{"type":"subject_total","subject":"english","count":20,"rarity":"common"}'),
 ('诗词小书童', '📖', '完成语文练习 20 次', 'learning', '{"type":"subject_total","subject":"chinese","count":20,"rarity":"common"}'),
-('小吃货', '🍽️', '连续 7 天饭前洗手打卡', 'general', '{"type":"task_streak","task_name":"饭前便后洗手","days":7,"rarity":"common"}'),
-('书包管家', '🎒', '累计收拾书包 20 次', 'general', '{"type":"task_total","task_name":"自己洗漱","count":20,"rarity":"common"}'),
+('小吃货', '🍽️', '连续 7 天好好吃饭不挑食', 'general', '{"type":"task_streak","task_name":"好好吃饭","days":7,"rarity":"common"}'),
+('书包管家', '🎒', '累计收拾书包 20 次', 'general', '{"type":"task_total","task_name":"收拾书包","count":20,"rarity":"common"}'),
 ('坚持一周', '🔥', '连续打卡 7 天', 'general', '{"type":"streak","days":7,"rarity":"rare"}'),
 ('半月英雄', '💪', '连续打卡 14 天', 'general', '{"type":"streak","days":14,"rarity":"rare"}'),
 ('月度冠军', '👑', '连续打卡 30 天', 'general', '{"type":"streak","days":30,"rarity":"epic"}'),
@@ -67,4 +67,9 @@ INSERT INTO badges (name, icon, description, category, condition) VALUES
 ('破万先锋', '💰', '累计获得 10000 积分', 'general', '{"type":"total_points","points":10000,"rarity":"legendary"}'),
 ('小超人之星', '✨', '累计获得 30000 积分', 'general', '{"type":"total_points","points":30000,"rarity":"legendary"}'),
 ('宇宙守护者', '🌌', '累计获得 50000 积分', 'general', '{"type":"total_points","points":50000,"rarity":"legendary"}'),
-('百日传奇', '💎', '连续打卡 100 天', 'general', '{"type":"streak","days":100,"rarity":"legendary"}');
+('百日传奇', '💎', '连续打卡 100 天', 'general', '{"type":"streak","days":100,"rarity":"legendary"}')
+ON CONFLICT (name) DO UPDATE SET
+  icon = EXCLUDED.icon,
+  description = EXCLUDED.description,
+  category = EXCLUDED.category,
+  condition = EXCLUDED.condition;
