@@ -233,9 +233,20 @@ export default function StudyPlayPage() {
   if (questions.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="text-5xl mb-4">😅</div>
-        <p className="text-gray-700 font-bold mb-2">题目生成超时</p>
-        <p className="text-gray-500 text-center mb-6">AI 正在努力出题，但耗时较长</p>
+        <div className="text-5xl mb-4">📚</div>
+        <p className="text-gray-700 font-bold mb-2">暂无可用题目</p>
+        <p className="text-gray-500 text-center mb-4">
+          题目需要通过 AI 生成，请家长先配置 AI 模型
+        </p>
+        <div className="card bg-yellow-50 border-yellow-200 w-full max-w-xs mb-6">
+          <p className="text-sm text-yellow-800 font-medium mb-2">⚙️ 配置步骤：</p>
+          <ol className="text-xs text-yellow-700 space-y-1 list-decimal list-inside">
+            <li>家长登录后进入「系统设置」</li>
+            <li>点击「AI 模型配置」</li>
+            <li>添加一个 AI 模型（如 DeepSeek、小米 MiMo）</li>
+            <li>测试连接成功后保存</li>
+          </ol>
+        </div>
         <div className="space-y-3 w-full max-w-xs">
           <button
             onClick={() => window.location.reload()}
@@ -267,7 +278,7 @@ export default function StudyPlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-28">
       {/* 顶部进度 */}
       <div className="flex items-center justify-between mb-6">
         <BackButton label="退出" href="/kid/study" />
@@ -386,8 +397,8 @@ export default function StudyPlayPage() {
         </div>
       )}
 
-      {/* 操作按钮 */}
-      <div className="sticky bottom-4 mt-6 pb-4">
+      {/* 操作按钮 - 固定在底部 */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent pt-8">
         {!showResult ? (
           <button
             onClick={handleSubmit}

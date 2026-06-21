@@ -12,7 +12,9 @@ import {
   Gift,
   ChartBar,
   Gear,
-  CaretRight
+  CaretRight,
+  Copy,
+  Check
 } from "@phosphor-icons/react"
 
 interface DashboardState {
@@ -32,6 +34,8 @@ export default function ParentDashboard() {
   const [parentName, setParentName] = useState("")
   const [kids, setKids] = useState<{ id: string; name: string; avatar: string }[]>([])
   const [currentKidId, setCurrentKidId] = useState("")
+  const [inviteCode, setInviteCode] = useState("")
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const parent = getParentSession()
@@ -40,7 +44,38 @@ export default function ParentDashboard() {
     setParentName(parent.name)
     setKids(parent.kids || [])
     setCurrentKidId(parent.kid_id || "")
+
+    // 获取邀请码
+    if (parent.id) {
+      fetch(`/api/family/invite?user_id=${parent.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.invite_code) {
+            setInviteCode(data.invite_code)
+          }
+        })
+        .catch(() => {})
+    }
   }, [])
+
+  const copyInviteCode = async () => {
+    if (!inviteCode) return
+    try {
+      await navigator.clipboard.writeText(inviteCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea")
+      textArea.value = inviteCode
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textArea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   useEffect(() => {
     if (!currentKidId) return
@@ -92,7 +127,7 @@ export default function ParentDashboard() {
 
       {/* Kid Switcher */}
       {kids.length > 0 && (
-        <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-3 mb-4 overflow-x-auto pb-2">
           {kids.map((kid) => (
             <button
               key={kid.id}
@@ -107,6 +142,34 @@ export default function ParentDashboard() {
               <span className="font-medium text-sm">{kid.name}</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* 邀请码卡片 */}
+      {inviteCode && (
+        <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-800">家庭邀请码</p>
+              <p className="text-xs text-green-600 mt-0.5">分享给其他家长加入家庭</p>
+            </div>
+            <button
+              onClick={copyInviteCode}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl cursor-pointer hover:bg-green-600 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check size={16} />
+                  <span className="font-bold tracking-wider">{inviteCode}</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={16} />
+                  <span className="font-bold tracking-wider">{inviteCode}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 

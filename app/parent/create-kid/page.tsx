@@ -90,9 +90,11 @@ export default function CreateKidPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-4">
-      <BackButton />
-
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">添加宝贝</h1>
+      {/* 顶部导航栏 */}
+      <div className="flex items-center gap-3 mb-6">
+        <BackButton />
+        <h1 className="text-2xl font-bold text-gray-800">添加宝贝</h1>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-5 max-w-md">
         {/* Avatar Selection */}
@@ -206,10 +208,13 @@ export default function CreateKidPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl transition-colors disabled:opacity-50 cursor-pointer"
+          className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold text-lg rounded-2xl transition-colors disabled:opacity-50 cursor-pointer shadow-lg mt-4"
         >
-          {loading ? "添加中..." : "添加宝贝"}
+          {loading ? "添加中..." : "✅ 确认添加宝贝"}
         </button>
+
+        {/* 底部安全距离 */}
+        <div className="h-8"></div>
       </form>
     </div>
   )

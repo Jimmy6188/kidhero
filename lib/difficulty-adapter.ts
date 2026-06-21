@@ -109,10 +109,10 @@ export async function calculateDifficulty(
     getLastDifficulty(kidId, subject),
   ])
 
-  // 新手保护：做过少于 5 题，返回默认难度 2
+  // 新手保护：做过少于 5 题，返回默认难度 3
   if (stats.totalQuestions < 5) {
-    console.log(`[Difficulty] New user, returning default difficulty 2`)
-    return 2
+    console.log(`[Difficulty] New user, returning default difficulty 3`)
+    return 3
   }
 
   let newDifficulty = lastDifficulty

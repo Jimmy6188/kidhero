@@ -126,6 +126,8 @@ function RegisterForm() {
   const [confirmPin, setConfirmPin] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [joinMode, setJoinMode] = useState<"create" | "join">("create")
+  const [inviteCode, setInviteCode] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,9 +145,14 @@ function RegisterForm() {
       setError("两次输入的 PIN 码不一致")
       return
     }
+    if (joinMode === "join" && !inviteCode.trim()) {
+      setError("请输入邀请码")
+      return
+    }
 
     setLoading(true)
     try {
+      // 先注册
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -153,12 +160,37 @@ function RegisterForm() {
       })
       const data = await res.json()
 
-      if (data.success) {
-        setParentSession(data.user)
-        router.push("/parent/dashboard")
-      } else {
+      if (!data.success) {
         setError(data.error || "注册失败")
+        setLoading(false)
+        return
       }
+
+      // 如果是加入家庭，调用邀请码 API
+      if (joinMode === "join" && inviteCode.trim()) {
+        const joinRes = await fetch("/api/family/invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invite_code: inviteCode.trim().toUpperCase(),
+            user_id: data.user.id,
+          }),
+        })
+        const joinData = await joinRes.json()
+
+        if (!joinData.success) {
+          setError(joinData.error || "邀请码无效")
+          setLoading(false)
+          return
+        }
+
+        // 更新 session 中的孩子列表
+        data.user.kids = joinData.kids
+        data.user.family_id = joinData.family_id
+      }
+
+      setParentSession(data.user)
+      router.push("/parent/dashboard")
     } catch {
       setError("网络错误，请重试")
     }
@@ -167,6 +199,53 @@ function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-4">
+      {/* 选择注册模式 */}
+      <div>
+        <label className="text-sm text-gray-600 mb-2 block">注册方式</label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setJoinMode("create")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer ${
+              joinMode === "create"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            创建新家庭
+          </button>
+          <button
+            type="button"
+            onClick={() => setJoinMode("join")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer ${
+              joinMode === "join"
+                ? "bg-green-500 text-white"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            加入已有家庭
+          </button>
+        </div>
+      </div>
+
+      {/* 加入家庭时显示邀请码输入 */}
+      {joinMode === "join" && (
+        <div>
+          <label className="text-sm text-gray-600 mb-1 block">家庭邀请码</label>
+          <input
+            type="text"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+            placeholder="请输入 6 位邀请码"
+            maxLength={6}
+            className="w-full p-3 bg-gray-50 border-2 border-green-300 rounded-2xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-all uppercase tracking-widest text-center font-bold text-lg"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            请向家庭中的其他家长获取邀请码
+          </p>
+        </div>
+      )}
+
       <div>
         <label className="text-sm text-gray-600 mb-1 block">您的姓名</label>
         <input
@@ -229,9 +308,13 @@ function RegisterForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl transition-colors disabled:opacity-50 cursor-pointer"
+        className={`w-full py-3 font-bold rounded-2xl transition-colors disabled:opacity-50 cursor-pointer ${
+          joinMode === "join"
+            ? "bg-green-500 hover:bg-green-600 text-white"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
+        }`}
       >
-        {loading ? "注册中..." : "注册"}
+        {loading ? "注册中..." : joinMode === "join" ? "加入家庭" : "创建家庭"}
       </button>
     </form>
   )

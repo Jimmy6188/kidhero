@@ -1,14 +1,22 @@
-// LLM 配置管理 API
+// LLM 配置管理 API（按家庭隔离）
 
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-server"
 
-// 获取所有配置
-export async function GET() {
+// 获取当前家庭的配置
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+    const familyId = searchParams.get("family_id")
+
+    if (!familyId) {
+      return NextResponse.json({ error: "family_id is required" }, { status: 400 })
+    }
+
     const { data, error } = await supabaseAdmin
       .from("llm_configs")
       .select("id, name, url, protocol, model, priority, enabled, created_at")
+      .eq("family_id", familyId)
       .order("priority", { ascending: true })
 
     if (error) {
@@ -28,10 +36,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, url, api_key, protocol, model, priority } = body
+    const { name, url, api_key, protocol, model, priority, family_id } = body
 
     // 验证必填字段
-    if (!name || !url || !api_key || !protocol || !model) {
+    if (!name || !url || !api_key || !protocol || !model || !family_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -56,6 +64,7 @@ export async function POST(req: NextRequest) {
         model,
         priority: priority || 0,
         enabled: true,
+        family_id,
       })
       .select("id, name, url, protocol, model, priority, enabled")
       .single()
@@ -77,10 +86,10 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json()
-    const { id, name, url, api_key, protocol, model, priority, enabled } = body
+    const { id, name, url, api_key, protocol, model, priority, enabled, family_id } = body
 
-    if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 })
+    if (!id || !family_id) {
+      return NextResponse.json({ error: "id and family_id are required" }, { status: 400 })
     }
 
     const updateData: Record<string, unknown> = {}
@@ -96,6 +105,7 @@ export async function PUT(req: NextRequest) {
       .from("llm_configs")
       .update(updateData)
       .eq("id", id)
+      .eq("family_id", family_id)  // 只能修改自己家庭的配置
       .select("id, name, url, protocol, model, priority, enabled")
       .single()
 
@@ -117,15 +127,17 @@ export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
+    const familyId = searchParams.get("family_id")
 
-    if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 })
+    if (!id || !familyId) {
+      return NextResponse.json({ error: "id and family_id are required" }, { status: 400 })
     }
 
     const { error } = await supabaseAdmin
       .from("llm_configs")
       .delete()
       .eq("id", id)
+      .eq("family_id", familyId)  // 只能删除自己家庭的配置
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

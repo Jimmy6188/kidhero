@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import BackButton from "@/components/shared/BackButton"
+import { getParentSession } from "@/lib/session"
 
 interface LLMConfig {
   id: string
@@ -26,6 +27,7 @@ export default function LLMSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [familyId, setFamilyId] = useState<string>("")
 
   // 表单状态
   const [form, setForm] = useState({
@@ -42,9 +44,17 @@ export default function LLMSettingsPage() {
   const [testResult, setTestResult] = useState<TestResult | null>(null)
 
   useEffect(() => {
+    const parent = getParentSession()
+    if (parent?.family_id || parent?.id) {
+      setFamilyId(parent.family_id || parent.id)
+    }
+  }, [])
+
+  useEffect(() => {
     const loadConfigs = async () => {
+      if (!familyId) return
       try {
-        const res = await fetch("/api/llm/configs")
+        const res = await fetch(`/api/llm/configs?family_id=${familyId}`)
         const data = await res.json()
         setConfigs(data.configs || [])
       } catch (err) {
@@ -55,7 +65,7 @@ export default function LLMSettingsPage() {
     }
 
     loadConfigs()
-  }, [])
+  }, [familyId])
 
   const resetForm = () => {
     setForm({
@@ -127,10 +137,16 @@ export default function LLMSettingsPage() {
       return
     }
 
+    if (!familyId) {
+      alert("无法获取家庭信息，请重新登录")
+      return
+    }
+
     try {
       const method = editingId ? "PUT" : "POST"
       const body: Record<string, unknown> = {
         ...form,
+        family_id: familyId,
         ...(editingId ? { id: editingId } : {}),
       }
 
@@ -163,7 +179,7 @@ export default function LLMSettingsPage() {
     if (!confirm("确定删除这个模型配置吗？")) return
 
     try {
-      const res = await fetch(`/api/llm/configs?id=${id}`, {
+      const res = await fetch(`/api/llm/configs?id=${id}&family_id=${familyId}`, {
         method: "DELETE",
       })
 
@@ -183,7 +199,7 @@ export default function LLMSettingsPage() {
       await fetch("/api/llm/configs", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, enabled: !enabled }),
+        body: JSON.stringify({ id, enabled: !enabled, family_id: familyId }),
       })
       window.location.reload()
     } catch {

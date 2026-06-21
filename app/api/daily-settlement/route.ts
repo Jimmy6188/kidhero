@@ -9,10 +9,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "缺少 kid_id" }, { status: 400 })
     }
 
-    // Get the kid's parent to find tasks
+    // Get the kid's info including creation time
     const { data: kid } = await supabaseAdmin
       .from("users")
-      .select("parent_id")
+      .select("parent_id, created_at")
       .eq("id", kid_id)
       .single()
 
@@ -20,8 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ settled: false, reason: "no parent" })
     }
 
-    // Check if already settled today
+    // Check if kid was created today - skip penalty for new kids
     const today = new Date().toISOString().slice(0, 10)
+    const kidCreatedDate = new Date(kid.created_at).toISOString().slice(0, 10)
+
+    if (kidCreatedDate >= today) {
+      return NextResponse.json({ settled: false, reason: "new_kid" })
+    }
+
+    // Check if already settled today
     const { data: existingLog } = await supabaseAdmin
       .from("points_log")
       .select("id")
