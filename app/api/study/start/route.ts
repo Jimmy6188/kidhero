@@ -8,7 +8,7 @@ import { calculateDifficulty } from "@/lib/difficulty-adapter"
 import { randomUUID } from "crypto"
 
 // 设置最大执行时间
-export const maxDuration = 600 // 10 分钟
+export const maxDuration = 300 // 5 分钟（Hobby 计划最大值）
 
 export async function POST(req: NextRequest) {
   try {
