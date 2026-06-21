@@ -19,6 +19,7 @@ interface ParentSession {
   id: string
   name: string
   role: "parent"
+  family_id?: string
   kid_id?: string
   kids?: KidInfo[]
 }
