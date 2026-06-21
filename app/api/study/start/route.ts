@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
     const sessionId = randomUUID()
 
     // 根据模式决定题目来源
-    let questions: Record<string, unknown>[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let questions: any[] = []
 
     if (mode === "review") {
       // 错题复习模式：获取待复习的知识点
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
           subject || "math",
           2, // 复习时用较低难度
           needed,
-          questions.map((q) => q.id)
+          questions.map((q) => String(q.id))
         )
         questions.push(...newQuestions)
       }

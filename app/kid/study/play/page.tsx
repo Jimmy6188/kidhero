@@ -309,10 +309,13 @@ export default function StudyPlayPage() {
         <div className="space-y-3 mb-6">
           {currentQuestion.content.options.map((option, index) => {
             let bgClass = "bg-white hover:bg-blue-50"
-            if (showResult) {
-              if (index === result?.correct_answer?.correct) {
+            if (showResult && result) {
+              const correctAnswer = typeof result.correct_answer === 'object' && result.correct_answer !== null
+                ? (result.correct_answer as Record<string, unknown>).correct
+                : result.correct_answer
+              if (index === correctAnswer) {
                 bgClass = "bg-green-100 border-green-500"
-              } else if (index === selectedAnswer && !result?.is_correct) {
+              } else if (index === selectedAnswer && !result.is_correct) {
                 bgClass = "bg-red-100 border-red-500"
               }
             } else if (index === selectedAnswer) {
