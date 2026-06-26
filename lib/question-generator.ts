@@ -134,13 +134,16 @@ ${subjectGuide[subject] || ""}
  */
 function parseQuestions(jsonStr: string): GeneratedQuestion[] {
   try {
-    // 尝试提取 JSON 部分（有些模型会在 JSON 前后加文字）
-    const jsonMatch = jsonStr.match(/\[[\s\S]*\]/)
-    if (!jsonMatch) {
+    // 使用 indexOf/lastIndexOf 精确提取 JSON 数组（避免贪婪匹配错误）
+    const firstBracket = jsonStr.indexOf("[")
+    const lastBracket = jsonStr.lastIndexOf("]")
+
+    if (firstBracket === -1 || lastBracket === -1 || firstBracket >= lastBracket) {
       throw new Error("No JSON array found in response")
     }
 
-    const questions = JSON.parse(jsonMatch[0])
+    const jsonContent = jsonStr.substring(firstBracket, lastBracket + 1)
+    const questions = JSON.parse(jsonContent)
 
     // 校验每道题的格式
     return questions.filter((q: Record<string, unknown>) => {

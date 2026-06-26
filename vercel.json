@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/refill-cache",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

@@ -20,6 +20,32 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // 幂等性检查：是否已经提交过这道题的答案
+    const { data: existingRecord } = await supabaseAdmin
+      .from("study_records")
+      .select("id, is_correct")
+      .eq("kid_id", kid_id)
+      .eq("question_id", question_id)
+      .single()
+
+    if (existingRecord) {
+      // 已经提交过，返回之前的结果（不重复计分）
+      const { data: question } = await supabaseAdmin
+        .from("question_cache")
+        .select("answer, explanation, knowledge_point")
+        .eq("id", question_id)
+        .single()
+
+      return NextResponse.json({
+        is_correct: existingRecord.is_correct,
+        correct_answer: question?.answer,
+        explanation: question?.explanation,
+        points_earned: 0, // 重复提交不再给分
+        knowledge_point: question?.knowledge_point,
+        duplicate: true,
+      })
+    }
+
     // 获取题目信息
     const { data: question, error: questionError } = await supabaseAdmin
       .from("question_cache")
@@ -91,11 +117,20 @@ export async function POST(req: NextRequest) {
     // 计算积分（答对 +10，答错 +2 参与分）
     const points = isCorrect ? 10 : 2
 
-    // 更新积分
-    await supabaseAdmin.rpc("update_kid_points", {
-      kid_id,
-      points_to_add: points,
-    })
+    // 更新积分（两个数据源都要更新）
+    await Promise.all([
+      // 更新 users.points 字段
+      supabaseAdmin.rpc("update_kid_points", {
+        kid_id,
+        points_to_add: points,
+      }),
+      // 写入 points_log（首页从这里读取）
+      supabaseAdmin.from("points_log").insert({
+        kid_id,
+        amount: points,
+        reason: isCorrect ? "答题正确" : "答题参与",
+      }),
+    ])
 
     return NextResponse.json({
       is_correct: isCorrect,

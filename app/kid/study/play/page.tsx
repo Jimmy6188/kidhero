@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { getKidSession } from "@/lib/session"
 import BackButton from "@/components/shared/BackButton"
@@ -28,6 +28,7 @@ interface AnswerResult {
 export default function StudyPlayPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const actionRef = useRef<HTMLDivElement>(null)
 
   const mode = searchParams.get("mode") || "daily"
   const subject = searchParams.get("subject") || "math"
@@ -167,6 +168,11 @@ export default function StudyPlayPage() {
       setResult(data)
       setShowResult(true)
 
+      // 自动滚动到操作按钮
+      setTimeout(() => {
+        actionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 100)
+
       // 更新分数
       setScore((prev) => ({
         correct: prev.correct + (data.is_correct ? 1 : 0),
@@ -188,6 +194,9 @@ export default function StudyPlayPage() {
       setFillInput("")
       setShowResult(false)
       setResult(null)
+
+      // 滚动到顶部看新题目
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
@@ -278,7 +287,7 @@ export default function StudyPlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 pb-28">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4">
       {/* 顶部进度 */}
       <div className="flex items-center justify-between mb-6">
         <BackButton label="退出" href="/kid/study" />
@@ -397,8 +406,8 @@ export default function StudyPlayPage() {
         </div>
       )}
 
-      {/* 操作按钮 - 固定在底部 */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent pt-8">
+      {/* 操作按钮 - 跟随在内容后面 */}
+      <div ref={actionRef} className="mt-6">
         {!showResult ? (
           <button
             onClick={handleSubmit}

@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-server"
 import { REGION_BOSSES, REGION_BADGES } from "@/lib/constants"
+import { getCurrentUser, verifyParentOfKid } from "@/lib/auth-middleware"
 
 // 获取 Boss 状态
 export async function GET(req: NextRequest) {
@@ -53,11 +54,22 @@ export async function GET(req: NextRequest) {
 // 开始 Boss 挑战
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser(req)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json()
     const { kid_id, boss_id } = body
 
     if (!kid_id || !boss_id) {
       return NextResponse.json({ error: "kid_id and boss_id are required" }, { status: 400 })
+    }
+
+    // 验证是否为该孩子的家长
+    const isParent = await verifyParentOfKid(user.id, kid_id)
+    if (!isParent && user.id !== kid_id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     // 查找 Boss 配置
@@ -116,11 +128,22 @@ export async function POST(req: NextRequest) {
 // 提交挑战结果
 export async function PUT(req: NextRequest) {
   try {
+    const user = await getCurrentUser(req)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json()
     const { challenge_id, kid_id, boss_id, score, total } = body
 
     if (!challenge_id || !kid_id || !boss_id) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // 验证是否为该孩子的家长
+    const isParent = await verifyParentOfKid(user.id, kid_id)
+    if (!isParent && user.id !== kid_id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const boss = REGION_BOSSES.find(b => b.id === boss_id)

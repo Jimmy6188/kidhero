@@ -303,6 +303,21 @@ export default function ParentDashboard() {
               </div>
             </Link>
 
+            <Link href="/parent/cache" className="card block hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-teal-100 rounded-xl">
+                    <ChartBar size={20} className="text-teal-600" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-800">题目缓存池</p>
+                    <p className="text-sm text-gray-500">查看库存和手动补充</p>
+                  </div>
+                </div>
+                <CaretRight size={16} className="text-gray-400" />
+              </div>
+            </Link>
+
             <Link href="/parent/settings" className="card block hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

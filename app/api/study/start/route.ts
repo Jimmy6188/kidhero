@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         : baseDifficulty
       const count = mode === "challenge" ? 15 : 10
 
-      // 先尝试从缓存获取
+      // 优先从缓存获取（快速路径）
       const { data: cached } = await supabaseAdmin
         .from("question_cache")
         .select("*")
@@ -104,15 +104,18 @@ export async function POST(req: NextRequest) {
         .limit(count)
 
       if (cached && cached.length >= count) {
-        // 缓存足够
+        // 缓存充足，直接使用（秒出题）
+        console.log(`[StudyStart] Cache hit: ${cached.length} questions for ${subject} grade ${grade} difficulty ${difficulty}`)
         questions = cached
       } else {
-        // 缓存不够，需要生成
+        // 缓存不足，使用 getOrGenerateQuestions 作为兜底
+        console.log(`[StudyStart] Cache insufficient (${cached?.length || 0}/${count}), falling back to generate`)
         questions = await getOrGenerateQuestions(
           grade,
           subject || "math",
           difficulty,
-          count
+          count,
+          cached?.map(q => String(q.id)) || []
         )
       }
     }

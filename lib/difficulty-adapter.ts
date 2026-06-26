@@ -8,10 +8,11 @@ interface StudyStats {
   correctRate: number
   currentStreak: number
   avgDifficulty: number
+  lastDifficulty: number
 }
 
 /**
- * 获取学习统计
+ * 获取学习统计（合并了原来的 getStudyStats 和 getLastDifficulty）
  */
 async function getStudyStats(
   kidId: string,
@@ -33,6 +34,7 @@ async function getStudyStats(
       correctRate: 0,
       currentStreak: 0,
       avgDifficulty: 2,
+      lastDifficulty: 2,
     }
   }
 
@@ -50,17 +52,21 @@ async function getStudyStats(
     }
   }
 
-  // 计算平均难度
+  // 计算平均难度和最后难度
   const difficulties = records
     .map((r: Record<string, unknown>) => {
       const qc = r.question_cache as Record<string, unknown> | undefined
       return (qc?.difficulty as number) || 2
     })
     .filter(Boolean)
+
   const avgDifficulty =
     difficulties.length > 0
       ? difficulties.reduce((a, b) => a + b, 0) / difficulties.length
       : 2
+
+  // 最后使用的难度（第一条记录的难度）
+  const lastDifficulty = difficulties[0] || 2
 
   return {
     totalQuestions: records.length,
@@ -68,28 +74,8 @@ async function getStudyStats(
     correctRate,
     currentStreak,
     avgDifficulty,
+    lastDifficulty,
   }
-}
-
-/**
- * 获取上次使用的难度
- */
-async function getLastDifficulty(
-  kidId: string,
-  subject: string
-): Promise<number> {
-  const { data } = await supabaseAdmin
-    .from("study_records")
-    .select("question_cache(difficulty)")
-    .eq("kid_id", kidId)
-    .eq("subject", subject)
-    .order("answered_at", { ascending: false })
-    .limit(1)
-    .single()
-
-  const record = data as Record<string, unknown> | null
-  const qc = record?.question_cache as Record<string, unknown> | undefined
-  return (qc?.difficulty as number) || 2
 }
 
 /**
@@ -104,10 +90,8 @@ export async function calculateDifficulty(
   kidId: string,
   subject: string
 ): Promise<number> {
-  const [stats, lastDifficulty] = await Promise.all([
-    getStudyStats(kidId, subject),
-    getLastDifficulty(kidId, subject),
-  ])
+  const stats = await getStudyStats(kidId, subject)
+  const lastDifficulty = stats.lastDifficulty
 
   // 新手保护：做过少于 5 题，返回默认难度 3
   if (stats.totalQuestions < 5) {

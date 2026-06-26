@@ -2,15 +2,29 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase-server"
+import { getCurrentUser, verifyParentOfKid } from "@/lib/auth-middleware"
 
 // 获取难度设置
 export async function GET(req: NextRequest) {
   try {
+    const user = await getCurrentUser(req)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
     const kidId = searchParams.get("kid_id")
 
     if (!kidId) {
       return NextResponse.json({ error: "kid_id is required" }, { status: 400 })
+    }
+
+    // 验证权限：家长可以查看孩子的设置，孩子可以查看自己的设置
+    if (user.id !== kidId) {
+      const isParent = await verifyParentOfKid(user.id, kidId)
+      if (!isParent) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
 
     // 从 users 表获取难度设置
@@ -43,6 +57,11 @@ export async function GET(req: NextRequest) {
 // 更新难度设置
 export async function PUT(req: NextRequest) {
   try {
+    const user = await getCurrentUser(req)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json()
     const { kid_id, mode, fixed_difficulty } = body
 
@@ -51,6 +70,12 @@ export async function PUT(req: NextRequest) {
         { error: "kid_id and mode are required" },
         { status: 400 }
       )
+    }
+
+    // 验证权限：只有家长可以修改设置
+    const isParent = await verifyParentOfKid(user.id, kid_id)
+    if (!isParent) {
+      return NextResponse.json({ error: "只有家长可以修改难度设置" }, { status: 403 })
     }
 
     // 验证参数

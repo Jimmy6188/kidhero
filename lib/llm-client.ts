@@ -2,6 +2,9 @@
 
 import { supabaseAdmin } from "./supabase-server"
 
+// 默认超时时间：60秒
+const DEFAULT_TIMEOUT_MS = 60000
+
 export interface LLMConfig {
   id: string
   name: string
@@ -197,36 +200,54 @@ export class LLMClient {
       ? config.url
       : `${config.url}/v1/messages`
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": config.api_key,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": config.api_key,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: config.model,
+          max_tokens: maxTokens,
+          temperature,
+          messages: [{ role: "user", content: prompt }],
+        }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) {
+        const error = await res.text()
+        throw new Error(`Anthropic API error (${res.status}): ${error}`)
+      }
+
+      const data = await res.json()
+
+      // 防御性检查：验证响应格式
+      if (!data.content?.[0]?.text) {
+        throw new Error("Invalid Anthropic response: missing content")
+      }
+
+      return {
+        content: data.content[0].text,
+        provider: config.id,
         model: config.model,
-        max_tokens: maxTokens,
-        temperature,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    })
-
-    if (!res.ok) {
-      const error = await res.text()
-      throw new Error(`Anthropic API error (${res.status}): ${error}`)
-    }
-
-    const data = await res.json()
-
-    return {
-      content: data.content[0].text,
-      provider: config.id,
-      model: config.model,
-      usage: {
-        promptTokens: data.usage?.input_tokens || 0,
-        completionTokens: data.usage?.output_tokens || 0,
-      },
+        usage: {
+          promptTokens: data.usage?.input_tokens || 0,
+          completionTokens: data.usage?.output_tokens || 0,
+        },
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`Anthropic API timeout after ${DEFAULT_TIMEOUT_MS}ms`)
+      }
+      throw error
+    } finally {
+      clearTimeout(timeout)
     }
   }
 
@@ -243,35 +264,53 @@ export class LLMClient {
       ? config.url
       : `${config.url}/chat/completions`
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.api_key}`,
-      },
-      body: JSON.stringify({
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${config.api_key}`,
+        },
+        body: JSON.stringify({
+          model: config.model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature,
+        }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) {
+        const error = await res.text()
+        throw new Error(`OpenAI API error (${res.status}): ${error}`)
+      }
+
+      const data = await res.json()
+
+      // 防御性检查：验证响应格式
+      if (!data.choices?.[0]?.message?.content) {
+        throw new Error("Invalid OpenAI response: missing choices")
+      }
+
+      return {
+        content: data.choices[0].message.content,
+        provider: config.id,
         model: config.model,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: maxTokens,
-        temperature,
-      }),
-    })
-
-    if (!res.ok) {
-      const error = await res.text()
-      throw new Error(`OpenAI API error (${res.status}): ${error}`)
-    }
-
-    const data = await res.json()
-
-    return {
-      content: data.choices[0].message.content,
-      provider: config.id,
-      model: config.model,
-      usage: {
-        promptTokens: data.usage?.prompt_tokens || 0,
-        completionTokens: data.usage?.completion_tokens || 0,
-      },
+        usage: {
+          promptTokens: data.usage?.prompt_tokens || 0,
+          completionTokens: data.usage?.completion_tokens || 0,
+        },
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`OpenAI API timeout after ${DEFAULT_TIMEOUT_MS}ms`)
+      }
+      throw error
+    } finally {
+      clearTimeout(timeout)
     }
   }
 }
