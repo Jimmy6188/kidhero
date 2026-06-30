@@ -28,6 +28,7 @@ export default function LLMSettingsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [familyId, setFamilyId] = useState<string>("")
+  const [parentId, setParentId] = useState<string>("")
 
   // 表单状态
   const [form, setForm] = useState({
@@ -47,6 +48,7 @@ export default function LLMSettingsPage() {
     const parent = getParentSession()
     if (parent?.family_id || parent?.id) {
       setFamilyId(parent.family_id || parent.id)
+      setParentId(parent.id)
     }
   }, [])
 
@@ -54,7 +56,7 @@ export default function LLMSettingsPage() {
     const loadConfigs = async () => {
       if (!familyId) return
       try {
-        const res = await fetch(`/api/llm/configs?family_id=${familyId}`)
+        const res = await fetch(`/api/llm/configs?family_id=${familyId}&user_id=${parentId}`)
         const data = await res.json()
         setConfigs(data.configs || [])
       } catch (err) {
@@ -155,7 +157,7 @@ export default function LLMSettingsPage() {
         delete body.api_key
       }
 
-      const res = await fetch("/api/llm/configs", {
+      const res = await fetch(`/api/llm/configs?user_id=${parentId}`, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -179,7 +181,7 @@ export default function LLMSettingsPage() {
     if (!confirm("确定删除这个模型配置吗？")) return
 
     try {
-      const res = await fetch(`/api/llm/configs?id=${id}&family_id=${familyId}`, {
+      const res = await fetch(`/api/llm/configs?id=${id}&family_id=${familyId}&user_id=${parentId}`, {
         method: "DELETE",
       })
 
@@ -196,7 +198,7 @@ export default function LLMSettingsPage() {
 
   const handleToggle = async (id: string, enabled: boolean) => {
     try {
-      await fetch("/api/llm/configs", {
+      await fetch(`/api/llm/configs?user_id=${parentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, enabled: !enabled, family_id: familyId }),

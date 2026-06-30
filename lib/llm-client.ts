@@ -2,8 +2,8 @@
 
 import { supabaseAdmin } from "./supabase-server"
 
-// 默认超时时间：60秒
-const DEFAULT_TIMEOUT_MS = 60000
+// 默认超时时间：120秒（题目生成 prompt 较大，需要更长时间）
+const DEFAULT_TIMEOUT_MS = 120000
 
 export interface LLMConfig {
   id: string
@@ -93,17 +93,22 @@ function getEnvConfigs(): LLMConfig[] {
 }
 
 export class LLMClient {
-  private configs: LLMConfig[]
-  private configPromise: Promise<LLMConfig[]>
-
-  constructor() {
-    this.configPromise = getLLMConfigs()
-    this.configs = []
-  }
+  private configs: LLMConfig[] | null = null
+  private configTimestamp: number = 0
+  private readonly CACHE_TTL = 60000 // 1 分钟缓存
 
   private async ensureConfigs(): Promise<LLMConfig[]> {
-    if (this.configs.length === 0) {
-      this.configs = await this.configPromise
+    const now = Date.now()
+    // 缓存过期或为空时重新读取
+    if (!this.configs || now - this.configTimestamp > this.CACHE_TTL) {
+      console.log("[LLM] Reloading configs from database...")
+      this.configs = await getLLMConfigs()
+      this.configTimestamp = now
+      console.log("[LLM] Loaded configs:", this.configs.map(c => ({
+        name: c.name,
+        protocol: c.protocol,
+        url: c.url
+      })))
     }
     return this.configs
   }
@@ -180,6 +185,8 @@ export class LLMClient {
     const maxTokens = options?.maxTokens || 4000
     const temperature = options?.temperature || 0.7
 
+    console.log(`[LLM] Calling ${config.name} with protocol=${config.protocol}, url=${config.url}`)
+
     if (config.protocol === "anthropic") {
       return this.callAnthropic(config, prompt, maxTokens, temperature)
     } else {
@@ -199,6 +206,8 @@ export class LLMClient {
     const url = config.url.endsWith("/v1/messages")
       ? config.url
       : `${config.url}/v1/messages`
+
+    console.log(`[LLM] Anthropic request to: ${url}`)
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)

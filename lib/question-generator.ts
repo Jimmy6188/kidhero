@@ -134,30 +134,93 @@ ${subjectGuide[subject] || ""}
  */
 function parseQuestions(jsonStr: string): GeneratedQuestion[] {
   try {
-    // 使用 indexOf/lastIndexOf 精确提取 JSON 数组（避免贪婪匹配错误）
-    const firstBracket = jsonStr.indexOf("[")
-    const lastBracket = jsonStr.lastIndexOf("]")
+    // 1. 清理 markdown 代码块标记
+    let cleaned = jsonStr
+      .replace(/^[\s\S]*?```(?:json)?\s*/i, "")
+      .replace(/\s*```[\s\S]*$/i, "")
+      .trim()
+
+    // 2. 提取 JSON 数组
+    const firstBracket = cleaned.indexOf("[")
+    const lastBracket = cleaned.lastIndexOf("]")
 
     if (firstBracket === -1 || lastBracket === -1 || firstBracket >= lastBracket) {
       throw new Error("No JSON array found in response")
     }
 
-    const jsonContent = jsonStr.substring(firstBracket, lastBracket + 1)
-    const questions = JSON.parse(jsonContent)
+    const jsonContent = cleaned.substring(firstBracket, lastBracket + 1)
+
+    // 3. 尝试多种方式解析
+    const parseAttempts = [
+      // 尝试 1: 直接解析
+      () => JSON.parse(jsonContent),
+      // 尝试 2: 移除尾部逗号
+      () => JSON.parse(jsonContent.replace(/,(\s*[}\]])/g, "$1")),
+      // 尝试 3: 补上对象间缺失的逗号
+      () => {
+        let fixed = jsonContent
+          .replace(/,(\s*[}\]])/g, "$1")
+          .replace(/}\s*{/g, "},{")
+          .replace(/}\s*\[/g, "},[")
+          .replace(/\]\s*{/g, "],{")
+          .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
+          // 清理补逗号导致的重复逗号
+          .replace(/,+/g, ",")
+        return JSON.parse(fixed)
+      },
+      // 尝试 4: 用宽松 JS 解析（最后的尝试）
+      () => {
+        // eslint-disable-next-line no-new-func
+        return Function("return " + jsonContent)()
+      },
+    ]
+
+    let questions: GeneratedQuestion[] | null = null
+    let lastError: unknown = null
+
+    for (const attempt of parseAttempts) {
+      try {
+        questions = attempt()
+        break
+      } catch (e) {
+        lastError = e
+      }
+    }
+
+    if (!questions) {
+      throw lastError || new Error("JSON parse failed")
+    }
 
     // 校验每道题的格式
-    return questions.filter((q: Record<string, unknown>) => {
-      const content = q.content as Record<string, unknown> | undefined
-      const answer = q.answer as Record<string, unknown> | undefined
-      if (!content?.stem) return false
-      if (q.type === "choice" && (!content.options || (content.options as unknown[]).length !== 4)) return false
-      if (answer?.correct === undefined) return false
-      return true
-    })
+    return questions
+      .filter((q: Record<string, unknown>) => {
+        const content = q.content as Record<string, unknown> | undefined
+        const answer = q.answer as Record<string, unknown> | undefined
+        if (!content?.stem) return false
+        if (q.type === "choice" && (!content.options || (content.options as unknown[]).length !== 4)) return false
+        if (answer?.correct === undefined) return false
+        return true
+      })
+      .map((q: Record<string, unknown>) => {
+        // 规范化 type 字段：blank -> fill
+        const type = q.type === "blank" ? "fill" : q.type
+        return { ...q, type }
+      })
   } catch (error) {
     console.error("[QuestionGenerator] Parse error:", error)
-    console.error("[QuestionGenerator] Raw response:", jsonStr.substring(0, 500))
-    throw new Error("Failed to parse generated questions")
+    // 输出错误位置附近的上下文
+    if (error instanceof SyntaxError) {
+      const posMatch = error.message.match(/position\s+(\d+)/)
+      if (posMatch) {
+        const pos = parseInt(posMatch[1])
+        const start = Math.max(0, pos - 60)
+        const end = Math.min(jsonContent.length, pos + 60)
+        console.error("[QuestionGenerator] Context:", jsonContent.substring(start, end))
+      }
+    }
+    const posInfo = error instanceof SyntaxError ? error.message : ""
+    const snippetStart = jsonStr.length > 400 ? jsonStr.substring(0, 400) + "..." : jsonStr
+    throw new Error(`Failed to parse generated questions: ${posInfo}`)
   }
 }
 

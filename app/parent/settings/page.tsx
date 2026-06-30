@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChartLineUp, Robot, CaretRight } from "@phosphor-icons/react"
+import { ChartLineUp, Robot, Database, CaretRight } from "@phosphor-icons/react"
 
 export default function SettingsPage() {
   return (
@@ -39,6 +39,24 @@ export default function SettingsPage() {
               <div>
                 <p className="font-bold text-gray-800">AI 模型配置</p>
                 <p className="text-sm text-gray-500">管理题目生成使用的 AI 模型</p>
+              </div>
+            </div>
+            <CaretRight size={16} className="text-gray-400" />
+          </div>
+        </Link>
+
+        <Link
+          href="/parent/cache"
+          className="card block hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-xl">
+                <Database size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-800">题目缓存池</p>
+                <p className="text-sm text-gray-500">管理并补充 AI 生成的题目</p>
               </div>
             </div>
             <CaretRight size={16} className="text-gray-400" />

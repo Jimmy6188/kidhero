@@ -97,16 +97,19 @@ export async function saveToCache(questions: GeneratedQuestion[]): Promise<strin
     knowledge_point: q.knowledge_point,
   }))
 
+  console.log("[QuestionPool] Saving", records.length, "questions to cache")
+
   const { data, error } = await supabaseAdmin
     .from("question_cache")
     .insert(records)
     .select("id")
 
   if (error) {
-    console.error("[QuestionPool] Failed to save questions:", error)
+    console.error("[QuestionPool] Failed to save questions:", JSON.stringify(error, null, 2))
     return []
   }
 
+  console.log("[QuestionPool] Successfully saved", data.length, "questions")
   return data.map((d) => d.id)
 }
 
