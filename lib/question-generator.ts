@@ -18,6 +18,11 @@ export interface GeneratedQuestion {
   knowledge_point: string
 }
 
+/** 从 LLM 返回的原始题目数据（type 可能包含 "blank" 等未规范化值） */
+interface RawQuestion extends Omit<GeneratedQuestion, "type"> {
+  type: string
+}
+
 /**
  * 构建题目生成 Prompt
  */
@@ -133,6 +138,7 @@ ${subjectGuide[subject] || ""}
  * 解析 LLM 返回的 JSON
  */
 function parseQuestions(jsonStr: string): GeneratedQuestion[] {
+  let jsonContent = ""
   try {
     // 1. 清理 markdown 代码块标记
     let cleaned = jsonStr
@@ -148,14 +154,14 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
       throw new Error("No JSON array found in response")
     }
 
-    const jsonContent = cleaned.substring(firstBracket, lastBracket + 1)
+    jsonContent = cleaned.substring(firstBracket, lastBracket + 1)
 
     // 3. 尝试多种方式解析
-    const parseAttempts: (() => GeneratedQuestion[])[] = [
+    const parseAttempts: (() => RawQuestion[])[] = [
       // 尝试 1: 直接解析
-      () => JSON.parse(jsonContent) as GeneratedQuestion[],
+      () => JSON.parse(jsonContent) as RawQuestion[],
       // 尝试 2: 移除尾部逗号
-      () => JSON.parse(jsonContent.replace(/,(\s*[}\]])/g, "$1")) as GeneratedQuestion[],
+      () => JSON.parse(jsonContent.replace(/,(\s*[}\]])/g, "$1")) as RawQuestion[],
       // 尝试 3: 补上对象间缺失的逗号
       () => {
         let fixed = jsonContent
@@ -166,16 +172,16 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
           .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
           // 清理补逗号导致的重复逗号
           .replace(/,+/g, ",")
-        return JSON.parse(fixed) as GeneratedQuestion[]
+        return JSON.parse(fixed) as RawQuestion[]
       },
       // 尝试 4: 用宽松 JS 解析（最后的尝试）
       () => {
         // eslint-disable-next-line no-new-func
-        return Function("return " + jsonContent)() as GeneratedQuestion[]
+        return Function("return " + jsonContent)() as RawQuestion[]
       },
     ]
 
-    let questions: GeneratedQuestion[] | null = null
+    let questions: RawQuestion[] | null = null
     let lastError: unknown = null
 
     for (const attempt of parseAttempts) {
@@ -191,20 +197,18 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
       throw lastError || new Error("JSON parse failed")
     }
 
-    // 校验每道题的格式
+    // 校验每道题的格式 + 规范化 type 字段
     return questions
-      .filter((q: Record<string, unknown>) => {
-        const content = q.content as Record<string, unknown> | undefined
-        const answer = q.answer as Record<string, unknown> | undefined
-        if (!content?.stem) return false
-        if (q.type === "choice" && (!content.options || (content.options as unknown[]).length !== 4)) return false
-        if (answer?.correct === undefined) return false
+      .filter((q: RawQuestion) => {
+        if (!q.content?.stem) return false
+        if (q.type === "choice" && (!q.content.options || q.content.options.length !== 4)) return false
+        if (q.answer?.correct === undefined) return false
         return true
       })
-      .map((q: Record<string, unknown>) => {
+      .map((q: RawQuestion) => {
         // 规范化 type 字段：blank -> fill
-        const type = q.type === "blank" ? "fill" : q.type
-        return { ...q, type }
+        const type = q.type === "blank" ? "fill" : (q.type as GeneratedQuestion["type"])
+        return { ...q, type } as GeneratedQuestion
       })
   } catch (error) {
     console.error("[QuestionGenerator] Parse error:", error)
@@ -219,7 +223,6 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
       }
     }
     const posInfo = error instanceof SyntaxError ? error.message : ""
-    const snippetStart = jsonStr.length > 400 ? jsonStr.substring(0, 400) + "..." : jsonStr
     throw new Error(`Failed to parse generated questions: ${posInfo}`)
   }
 }
