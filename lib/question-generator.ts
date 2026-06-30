@@ -151,11 +151,11 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
     const jsonContent = cleaned.substring(firstBracket, lastBracket + 1)
 
     // 3. 尝试多种方式解析
-    const parseAttempts = [
+    const parseAttempts: (() => GeneratedQuestion[])[] = [
       // 尝试 1: 直接解析
-      () => JSON.parse(jsonContent),
+      () => JSON.parse(jsonContent) as GeneratedQuestion[],
       // 尝试 2: 移除尾部逗号
-      () => JSON.parse(jsonContent.replace(/,(\s*[}\]])/g, "$1")),
+      () => JSON.parse(jsonContent.replace(/,(\s*[}\]])/g, "$1")) as GeneratedQuestion[],
       // 尝试 3: 补上对象间缺失的逗号
       () => {
         let fixed = jsonContent
@@ -166,12 +166,12 @@ function parseQuestions(jsonStr: string): GeneratedQuestion[] {
           .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
           // 清理补逗号导致的重复逗号
           .replace(/,+/g, ",")
-        return JSON.parse(fixed)
+        return JSON.parse(fixed) as GeneratedQuestion[]
       },
       // 尝试 4: 用宽松 JS 解析（最后的尝试）
       () => {
         // eslint-disable-next-line no-new-func
-        return Function("return " + jsonContent)()
+        return Function("return " + jsonContent)() as GeneratedQuestion[]
       },
     ]
 
